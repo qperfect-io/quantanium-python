@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "quantaniumpy"
+version = "0.1.0"
+description = "Python wrapper of Quantanium (State Vector Simulator) with support of MimiqCircuits-python interface"
+authors = ["anleo2023 <anna.leonteva@qperfect.io>"]
+license = "Licensed under the Apache License, Version 2.0 (the \"License\"); http://www.apache.org/licenses/LICENSE-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.22"
+mimiqcircuits = { git = "https://github.com/qperfect-io/mimiqcircuits-python.git", branch = "main" }
+scipy = "^1.14.0"
+matplotlib = "^3.9.2"
+
+
+
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.poetry.scripts]
+post-install = "post_install:main"

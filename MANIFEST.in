@@ -1,0 +1,2 @@
+include src/quantaniumpy/lib/*.so
+include src/quantaniumpy/__init__.py
