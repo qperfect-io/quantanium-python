@@ -1,0 +1,80 @@
+#== CMakeLists.txt ---------------------------------------------------------==#
+#
+#                             Quantanium by MIMIQ
+#
+# Copyright (C) 2023-2024 QPerfect. All Rights Reserved.
+# Unauthorized copying of this file, via any medium is strictly prohibited.
+# Proprietary and confidential.
+#
+#==------------------------------------------------------------------------==#
+
+cmake_minimum_required(VERSION 3.15...3.28)
+
+# ---------------------------------------------------------------------------------------
+# Start QuantaniumPy project
+# ---------------------------------------------------------------------------------------
+
+set(QUANTANIUM_VERSION 0.1.0)
+
+project(QuantaniumPy VERSION ${QUANTANIUMPY_VERSION} LANGUAGES CXX)
+
+set(LOGO [=[
+░Q░U░A░N░T░A░N░I░U░M░  .-=-.
+░█░█░█░█░█░█░█░█░█░█░ /(o o)\ 
+░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░ ^^ ^^ ^^
+]=])
+message(${LOGO})
+message(STATUS "Build ${PROJECT_NAME}: ${QUANTANIUMPY_VERSION}")
+
+# ---------------------------------------------------------------------------------------
+# Define the package information.
+# ---------------------------------------------------------------------------------------
+set(PACKAGE_DESCRIPTION
+    "Python wrapper for the MIMIQ Quantanium statevector engine."
+)
+set(PACKAGE_AUTHOR "QPerfect")
+
+# ---------------------------------------------------------------------------------------
+# Set default build to release
+# ---------------------------------------------------------------------------------------
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
+endif()
+
+# ---------------------------------------------------------------------------------------
+# Prohibit in-source builds.
+# ---------------------------------------------------------------------------------------
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+  message(FATAL_ERROR "In-source builds are not allowed."
+                      "Please make a separate build directory.")
+endif()
+
+# ---------------------------------------------------------------------------------------
+# Set QUANTANIUMPY_MASTER_PROJECT to ON if we are building Quatanium
+# ---------------------------------------------------------------------------------------
+# Check if Quantanium is being used directly or via add_subdirectory, but allow overriding
+if(NOT DEFINED QUANTANIUMPY_MASTER_PROJECT)
+    if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+        set(QUANTANIUMPY_MASTER_PROJECT ON)
+    else()
+        set(QUANTANIUMPY_MASTER_PROJECT OFF)
+    endif()
+endif()
+
+# ---------------------------------------------------------------------------------------
+# Extenral dependencies
+# ---------------------------------------------------------------------------------------
+add_subdirectory(libs)
+
+# ---------------------------------------------------------------------------------------
+# QuantaniumPy with pybind11
+# ---------------------------------------------------------------------------------------
+pybind11_add_module(_core MODULE src/QuantaniumPY.cpp)
+target_link_libraries(_core
+    PRIVATE
+    pybind11::headers
+    quantanium::quantanium
+    quantanium::proto
+)
+
+install(TARGETS _core DESTINATION quantaniumpy)

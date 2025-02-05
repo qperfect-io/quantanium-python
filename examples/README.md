@@ -6,6 +6,7 @@ This example presents `main` function to demonstrate the usage of the Quantanium
 This function initializes the Quantanium processor in local mode, constructs a simple MimiqCircuit and then executes the circuit. 
 The results of the execution are printed in the terminal.
 
+
 **Steps:**
 1. Initializes a `Quantanium` processor with local execution.
 2. Creates a Mimiq circuit with Hadamard (H) and CNOT (CX) gates.

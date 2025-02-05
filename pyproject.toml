@@ -1,24 +1,18 @@
-[tool.poetry]
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
 name = "quantaniumpy"
 version = "0.1.0"
-description = "Python wrapper of Quantanium (State Vector Simulator) with support of MimiqCircuits-python interface"
-authors = ["anleo2023 <anna.leonteva@qperfect.io>"]
-license = "Licensed under the Apache License, Version 2.0 (the \"License\"); http://www.apache.org/licenses/LICENSE-2.0"
+authors = [{ name = "QPerfect", email = "anna.leonteva@qperfect.io" }]
+description = "Python wrapper for the MIMIQ Quantanium statevector engine."
 readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy", "mimiqcircuits"]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-numpy = "^1.22"
-mimiqcircuits = { git = "https://github.com/qperfect-io/mimiqcircuits-python.git", branch = "main" }
-scipy = "^1.14.0"
-matplotlib = "^3.9.2"
+[tool.scikit-build]
+cmake.version = "==3.22.1"
+wheel.expand-macos-universal-tags = true
+minimum-version = "build-system.requires"
 
-
-
-
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.poetry.scripts]
-post-install = "post_install:main"

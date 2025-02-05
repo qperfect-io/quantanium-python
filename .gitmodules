@@ -1,0 +1,9 @@
+[submodule "libs/pybind11"]
+	path = libs/pybind11
+	url = https://github.com/pybind/pybind11.git
+[submodule "libs/quantanium"]
+	path = libs/quantanium
+	url = git@github.com:qperfect-io/quantanium
+  branch = feat-mcb012
+[submodule "lib/quantanium"]
+	branch = main

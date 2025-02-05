@@ -1,8 +1,13 @@
-# Qunataniumpy: Python Wrapper of Quantanium
+# QuantaniumPY
+
+*Python Wrapper for the MIMIQ Quantanium statevector engine.*
 
 ## Prerequisites
 
-- Python 3.10
+Before installing, ensure you have:
+- **Python** (version 3.10, 3.11, or 3.12)
+- **Git** installed on your system
+- **Virtual environment support** (e.g., `venv`)
 
 ## Installation
 
@@ -10,34 +15,77 @@ Quantanium is implemented in C++, with a wrapper written in the Python programmi
 For the released versions of Quantanium, we provide binaries via our Git repository, specifically for the Linux platform, which only require a functional Python environment to install.
 You can do this very easily following the instructions from the next subsection.
 
-### Installation from Package
+### Installation Quantaniumpy from Binary
+Installation Steps: 
 
-1. Set up Python virtual development environment
-
-Virtual environments are used for isolating the currently used environment from system-wide packages.
-This way helps to avoid inadvertently becoming dependent on a particular system configuration and makes it easy to maintain multiple environments: e.g. for older versions of Quantanium.
-Start by creating a new virtual environment with `venv`:
-
+1. Clone the Quantaniumpy Repository
+Clone the repository from the `feat-mcb012` branch:
 ```sh
-python -m venv ~/.venvs/quapy
-```
-Activate the environment by invoking the activation command:
-
-```sh
-source ~/.venvs/quapy/bin/activate
+ git clone -b feat-mcb012 git@github.com:qperfect-io/quantaniumpy.git
 ```
 
-2. Install binaries from Git:
-
+2. Create a Python Virtual Environment
 ```sh
-pip install "quantaniumpy @ git+https://github.com/qperfect-io/quantaniumpy.git"
+ python -m venv quant
 ```
 
-3. Verify the installed packages in your virtual environment:
-
+3. Activate the Virtual Environment
+On **Linux**:
 ```sh
-pip list
+ source quant/bin/activate
 ```
+4. Navigate to the Quantaniumpy Directory
+```sh
+ cd quantaniumpy
+```
+
+5. Create a Distribution Folder
+```sh
+ mkdir dist
+```
+
+6. Download the Artifact
+- Go to the **Actions** page of Quantaniumpy's GitHub repository.
+- Select the latest successful action.
+- Download the artifact **cibw-wheels-ubuntu-latest**.
+- Example link (replace with the latest action ID):  
+   [Download Artifact](https://github.com/qperfect-io/quantaniumpy/actions/runs/12802623816)
+
+7. Unzip the Artifact
+```sh
+ unzip cibw-wheels-ubuntu-latest.zip
+```
+This will extract multiple `.whl` files corresponding to different Python versions (10, 11 and 12).
+
+8. Select the Correct Wheel File
+Identify and copy the appropriate `.whl` file for your Python version. Example for **Python 3.10**:
+```sh
+ cp quantaniumpy-0.1.0-cp310-cp310-man~17_x86_64.manylinux2014_x86_64.whl path/to/quantaniumpy/dist/
+```
+
+9. Install the Python Package
+Navigate to the `quantnaiumpy` folder and install the package using `pip`:
+```sh
+pip install dist/quantaniumpy-0.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl 
+
+```
+
+10. Verify the Installation
+Run an example script to confirm everything is working:
+```sh
+ python examples/example_qasm.py
+```
+
+Quantaniumpy is now installed and ready for use.
+More examples in folder 'quantaniumpy/examples'.
+This package support MimiqCircuit python api.
+
+---
+### Troubleshooting
+- If installation fails, check that you have the correct Python version (`python --version`).
+- Ensure all dependencies are installed.
+- In some cases you should consider upgrading via the 'pip install --upgrade pip' command.
+
 
 ### Installation from Source
 
@@ -132,11 +180,10 @@ All accessible functions are defined within the Quantanium class inside Quantani
 - convert_qua_results_to_mimiq_results(qua_results): Converts qua::Results to mimiq::Results.
 - execute(circuit, label="pyapi_v1.0", algorithm="auto", nsamples=1000, bitstrings=None, timelimit=300, bonddim=None, entdim=None, seed=None, qasmincludes=None): Executes the given circuit.
 
-## Quick Starting
-In order to start, you can use an example script in file `/python/examples/example.py`:
-
+## Quick Start
+In order to start, you can use an example script from folder  `examples`, e.g.:
 
 ```sh
-$ python example.py path/to/your/qasm_file.qasm
+$ python examples/example_qasm.py
 ```
 
