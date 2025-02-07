@@ -5,9 +5,9 @@ on:
   pull_request:
   push:
     branches:
-     - main
-    tags:
-      - v*
+     - devel
+    # tags:
+    #   - v*
   release:
     types:
       - published
@@ -216,3 +216,15 @@ jobs:
       with:
         name: cibw-wheels-${{ matrix.os }}
         path: wheelhouse/*.whl
+    
+
+    - name: compress wheels
+      run: zip -r quantanium_wheels.zip wheelhouse/*.whl
+    
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: quantanium_wheels.zip
+        tag: ${{ github.ref_name }}
+        overwrite: true
