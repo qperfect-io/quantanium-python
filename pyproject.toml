@@ -8,20 +8,8 @@ version = "0.1.0"
 authors = [{ name = "QPerfect", email = "anna.leonteva@qperfect.io" }]
 description = "Python wrapper for the MIMIQ Quantanium statevector engine."
 readme = "README.md"
-<<<<<<< HEAD
-requires-python = "^3.10"
-dependencies = ["numpy", "mimiqcircuits"]
-||||||| 555b106
-=======
-<<<<<<< HEAD
 requires-python = ">=3.10"
 dependencies = ["numpy", "mimiqcircuits"]
-||||||| 555b106
-=======
-requires-python = "^3.10"
-dependencies = ["numpy", "mimiqcircuits"]
->>>>>>> devel
->>>>>>> main
 
 [tool.scikit-build]
 cmake.version = "==3.22.1"
