@@ -49,6 +49,7 @@ jobs:
 
 
   build_wheels:
+    permissions: write-all
     name: Wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
