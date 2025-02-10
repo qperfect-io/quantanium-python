@@ -57,6 +57,7 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.Barrier,
     mc.Measure,
     mc.Reset,
+    mc.IfStatement,
     mc.PauliString,
     mc.Amplitude,
     mc.PauliNoise,
