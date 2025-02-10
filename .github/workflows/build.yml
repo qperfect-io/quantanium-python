@@ -68,7 +68,6 @@ jobs:
         set -x
         echo "Detected architecture:"
         uname -m
-
         set +x
       shell: bash
 
@@ -123,7 +122,6 @@ jobs:
         # if [[ "${{ matrix.os }}" == "macos-13" ]]; then
         # fi
         CIBW_BEFORE_BUILD: |
-
           # python -m pip install cmake
         CIBW_BEFORE_ALL_WINDOWS: |
           echo on
@@ -131,17 +129,14 @@ jobs:
           unzip boost_1_86_0.zip -d C:/Boost
           set BOOST_ROOT=C:/Boost/boost_1_86_0
           echo "Boost installed at %BOOST_ROOT%"
-
           curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-win64.zip
           unzip protoc-21.12-win64.zip -d C:/Protobuf
           set PATH=C:/Protobuf/bin;%PATH%
           protoc --version
           echo "Protobuf installed and available in PATH"
-
           echo "BOOST_ROOT=%BOOST_ROOT%"
           echo "Protobuf installed at C:/Protobuf"
           echo off
-
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
             set -x
@@ -152,10 +147,8 @@ jobs:
             brew install protobuf@3
             brew link --force protobuf@3
             brew list
-
             DETECTED_ARCH=$(uname -m)
             echo "Detected architecture: $DETECTED_ARCH"
-
             export CXXFLAGS="-I$(brew --prefix protobuf)/include"
             export LDFLAGS="-L$(brew --prefix protobuf)/lib"
             echo "Protobuf installed at $(brew --prefix protobuf)"
@@ -166,7 +159,6 @@ jobs:
           # Install Boost
           set -x
           yum install -y epel-release autoconf automake libtool gcc gcc-c++ make unzip wget &&
-
           #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.tar.gz &&
           wget -O boost_1_86_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.tar.gz/download &&
           tar -xzf boost_1_86_0.tar.gz &&
@@ -174,15 +166,12 @@ jobs:
           ./bootstrap.sh &&
           ./b2 install &&
           cd .. &&
-
           # Install dependencies using yum
           
           export CMAKE_CXX_STANDARD=20 &&
-
           # Download and build Protobuf
           curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-linux-x86_64.zip &&
           unzip protoc-21.12-linux-x86_64.zip -d /usr/local/ &&
-
           curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protobuf-all-21.12.tar.gz &&
           tar -xzf protobuf-all-21.12.tar.gz &&
           cd protobuf-21.12 &&
@@ -193,12 +182,10 @@ jobs:
           export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH" &&
           export CMAKE_PREFIX_PATH="/usr/local" &&
           ldconfig &&
-
           # Debug Protobuf installation
           protoc --version || echo "Protoc not found"
           ls /usr/local/include/google/protobuf || echo "Protobuf headers not found"
           ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
-
           set +x
         CMAKE_CXX_STANDARD: 20
         CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}'
