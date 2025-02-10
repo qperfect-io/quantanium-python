@@ -223,5 +223,5 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: quantanium_wheels.zip
-        tag: v0.2.0
+        tag: ${{ github.ref_name }}
         overwrite: true
