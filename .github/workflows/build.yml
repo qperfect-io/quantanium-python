@@ -207,13 +207,18 @@ jobs:
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
+      # I did both os manually sorry
       - uses: actions/download-artifact@v4
         with:
-          name: wheelhouse
-          path: wheelhouse/*
+          name: wheelhousecibw-wheels-ubuntu-latest
+          path: wheelhouse/.
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheelhousecibw-wheels-macos-13
+          path: wheelhouse/.
 
       - name: Zip whls
-        run:  zip -r quantanium_wheels.zip wheelhouse/*.whl
+        run:  zip -r quantanium_wheels.zip wheelhouse/*
 
       - uses: svenstaro/upload-release-action@v2
         with:
