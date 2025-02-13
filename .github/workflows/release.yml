@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    tags:
+     - 'v*'
+  release:
+    types:
+      - published
+  workflow_call:
+
+env:
+  FORCE_COLOR: 3
+
+jobs:
+
+  build: 
+    uses:  ./.github/workflows/build.yml
+    secrets: inherit
+
+  create_release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+        # I did both os manually sorry
+      - uses: actions/download-artifact@v4
+        with:
+            name: cibw-wheels-ubuntu-latest
+            path: wheelhouse/.
+      - uses: actions/download-artifact@v4
+        with:
+            name: cibw-wheels-macos-13
+            path: wheelhouse/.
+
+      - name: Zip whls
+        run:  zip -r quantanium_wheels.zip wheelhouse/*
+
+      - uses: svenstaro/upload-release-action@v2
+        with:
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
+            file: quantanium_wheels.zip
+            tag: ${{ github.ref_name }}
+            overwrite: true
