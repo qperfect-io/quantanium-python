@@ -1,0 +1,14 @@
+name: Release
+on:
+  workflow_run:
+    workflows: ["Wheels"]
+    branches: [main]
+    types: 
+      - completed
+
+jobs:
+  pypi_upload:
+    if: github.repository == 'qperfect.io/quantanium-python-private' and ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'The Wheels workflow passed'
