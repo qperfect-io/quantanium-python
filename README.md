@@ -1,4 +1,4 @@
-# QuantaniumPY
+# Quantanium-python
 
 *Python Wrapper for the MIMIQ Quantanium statevector engine.*
 
@@ -15,70 +15,31 @@ Quantanium is implemented in C++, with a wrapper written in the Python programmi
 For the released versions of Quantanium, we provide binaries via our Git repository, specifically for the Linux platform, which only require a functional Python environment to install.
 You can do this very easily following the instructions from the next subsection.
 
-### Installation Quantaniumpy from Binary
+### Installation Quantanium-python from Binary
 Installation Steps: 
 
-1. Clone the Quantaniumpy Repository
-Clone the repository from the `feat-mcb012` branch:
-```sh
- git clone -b feat-mcb012 git@github.com:qperfect-io/quantaniumpy.git
+create a new python environment:
+```
+python -m venv .quantanium_venv
 ```
 
-2. Create a Python Virtual Environment
-```sh
- python -m venv quant
+activate your environment:
+```
+source .quantanium/bin/acitvate
 ```
 
-3. Activate the Virtual Environment
-On **Linux**:
-```sh
- source quant/bin/activate
+Download the latest release here: https://github.com/qperfect-io/quantanium-python/releases/latest
+
+Extract the content of the zip file using 
+
+To install the wheel make sure to select the correct file for your system.
+- the number after cp[NUM] in the name of the whl file must match your python version
+- If you are using macos take the file with macos included in the name, otherwise take the file with manylinux. (not built for windows yet)
+
+For example to install the wheels on ubuntu for python 3.12 run:
 ```
-4. Navigate to the Quantaniumpy Directory
-```sh
- cd quantaniumpy
+pip install  quantaniumpy-0.1.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 ```
-
-5. Create a Distribution Folder
-```sh
- mkdir dist
-```
-
-6. Download the Artifact
-- Go to the **Actions** page of Quantaniumpy's GitHub repository.
-- Select the latest successful action.
-- Download the artifact **cibw-wheels-ubuntu-latest**.
-- Example link (replace with the latest action ID):  
-   [Download Artifact](https://github.com/qperfect-io/quantaniumpy/actions/runs/12802623816)
-
-7. Unzip the Artifact
-```sh
- unzip cibw-wheels-ubuntu-latest.zip
-```
-This will extract multiple `.whl` files corresponding to different Python versions (10, 11 and 12).
-
-8. Select the Correct Wheel File
-Identify and copy the appropriate `.whl` file for your Python version. Example for **Python 3.10**:
-```sh
- cp quantaniumpy-0.1.0-cp310-cp310-man~17_x86_64.manylinux2014_x86_64.whl path/to/quantaniumpy/dist/
-```
-
-9. Install the Python Package
-Navigate to the `quantnaiumpy` folder and install the package using `pip`:
-```sh
-pip install dist/quantaniumpy-0.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl 
-
-```
-
-10. Verify the Installation
-Run an example script to confirm everything is working:
-```sh
- python examples/example_qasm.py
-```
-
-Quantaniumpy is now installed and ready for use.
-More examples in folder 'quantaniumpy/examples'.
-This package support MimiqCircuit python api.
 
 ---
 ### Troubleshooting
