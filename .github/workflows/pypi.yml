@@ -2,7 +2,7 @@ name: Release
 on:
   workflow_run:
     workflows: ["Wheels"]
-    branches: [main]
+    branches: [devel]
     types: 
       - completed
 
@@ -12,3 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo 'The Wheels workflow passed'
+
+  my_test:
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo 'Testing no conditions'
