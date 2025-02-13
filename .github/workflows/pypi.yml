@@ -1,16 +1,12 @@
 name: Upload Python Package
 
 on:
-  workflow_run:
-    workflows: ['Release']
-    types: [completed]
-    branches:
-        - 'main'
+  workflow_dispatch:
 
 jobs:
 
   get-release:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} and github.repository == 'qperfect-io/quantanium-python'
+    if: github.repository == 'qperfect-io/quantanium-python'
     runs-on: ubuntu-latest
 
     steps:
@@ -24,10 +20,10 @@ jobs:
       - uses: robinraju/release-downloader@v1
         with:
           extract: true
+          latest: true
           token: ${{ secrets.QUANTANIUMPY_PAT }}
           fileName: 'quantanium_wheels.zip'
           out-file-path: 'release-dists'
-          tag: ${{ github.ref_name }}
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
@@ -37,7 +33,7 @@ jobs:
 
   pypi-publish:
     needs: get-release
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} and github.repository == 'qperfect-io/quantanium-python'
+    if: github.repository == 'qperfect-io/quantanium-python'
     runs-on: ubuntu-latest
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
