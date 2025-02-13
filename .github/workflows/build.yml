@@ -1,6 +1,7 @@
 name: Wheels
 
-on: [workflow_call]
+on:
+  workflow_call:
 
 env:
   FORCE_COLOR: 3
