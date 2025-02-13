@@ -1,8 +1,7 @@
-name: Release
+name: Pypi
 on:
   workflow_run:
     workflows: ["Wheels"]
-    branches: [devel]
     types: 
       - completed
 
