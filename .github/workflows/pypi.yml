@@ -51,8 +51,9 @@ jobs:
       - name: Retrieve release distributions
         uses: actions/download-artifact@v4
         with:
-          name: quantanium_wheels.zip
+          name: dist
           path: dist/
+
       - name: unzip Wheels
         run: unzip dist/quantanium_wheels.zip -d dist/quantanium_wheels
 
