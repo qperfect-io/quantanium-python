@@ -1,11 +1,11 @@
 
 import numpy as np
-from quantaniumpy.Quantanium import Quantanium
+from quantanium.Quantanium import Quantanium
 from mimiqcircuits import *
 processor = Quantanium()
 
 circuit = Circuit()
- 
+
 # Add various gates
 circuit.push(GateH(), 0)
 circuit.push(GateX(), 1)
@@ -33,5 +33,3 @@ circuit.push(PauliString("XYZI"), 0, 1, 2, 3)
 
 r = processor.execute(circuit, nsamples=100)
 print(r)
-
-

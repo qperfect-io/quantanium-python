@@ -84,4 +84,4 @@ target_link_libraries(_core
     quantanium::proto
 )
 
-install(TARGETS _core DESTINATION quantaniumpy)
+install(TARGETS _core DESTINATION quantanium)
