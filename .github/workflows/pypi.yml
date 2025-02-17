@@ -19,17 +19,15 @@ jobs:
           # Gets the whl directly from the created release
       - uses: robinraju/release-downloader@v1
         with:
-          extract: true
           latest: true
-          token: ${{ secrets.QUANTANIUMPY_PAT }}
           fileName: 'quantanium_wheels.zip'
           out-file-path: 'release-dists'
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:
-          name: release-dists
-          path: dist/
+          name: dist
+          path: release-dists/quantanium_wheels.zip
 
   pypi-publish:
     needs: get-release
@@ -53,11 +51,14 @@ jobs:
       - name: Retrieve release distributions
         uses: actions/download-artifact@v4
         with:
-          name: release-dists
+          name: dist
           path: dist/
+
+      - name: unzip Wheels
+        run: unzip dist/quantanium_wheels.zip -d dist/quantanium_wheels
 
       - name: Publish release distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/
+          packages-dir: dist/quantanium_wheels/wheelhouse/.
           password: ${{ secrets.PYPI_API_TOKEN }}
