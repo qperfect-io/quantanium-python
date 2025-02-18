@@ -1,18 +1,7 @@
 #
-# Copyright © 2022-2024 University of Strasbourg. All Rights Reserved.
-# Copyright © 2032-2024 QPerfect. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright © 2023-2024, QPerfect. All rights reserved.
+# Unauthorized copying of this file, via any medium is strictly prohibited.
+# Proprietary and confidential.
 #
 import os
 import time
@@ -50,7 +39,7 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.GateU3,
     mc.GateU,
     mc.GateSX,
-    mc.GateSXDG,
+    mc.GateCSX,
     mc.GateSWAP,
     mc.GateXXplusYY,
     mc.GateCX,
@@ -63,8 +52,6 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.GateCRX,
     mc.GateCRY,
     mc.GateCRZ,
-    mc.GateCSX,
-    mc.GateCSXDG,
     mc.Barrier,
     mc.Measure,
     mc.Reset,
@@ -86,7 +73,7 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.ThermalNoise,
     mc.Kraus,
     mc.GateCustom,
-
+  
 }
 
 
@@ -141,8 +128,7 @@ class Quantanium:
                 )
 
         if isinstance(op, mc.PolynomialOracle):
-            raise ValueError(
-                "PolynomialOracle is not supported by the local executor.")
+            raise ValueError("PolynomialOracle is not supported by the local executor.")
 
         return False
 
@@ -155,8 +141,7 @@ class Quantanium:
             and not isinstance(op, mc.GateCall)
             and inst.num_qubits() <= 2
         ):
-            c.push(mc.GateCustom(inst.get_operation().matrix()),
-                   *inst.get_qubits())
+            c.push(mc.GateCustom(inst.get_operation().matrix()), *inst.get_qubits())
         else:
             decomposed = inst.decompose()
             for inst2 in decomposed:
@@ -211,8 +196,7 @@ class Quantanium:
                 tmp.flush()
                 qua_circuit = ProtoParser().load_proto(tmp.name)
             except Exception as e:
-                raise Exception(
-                    f"Error converting mimiq::Circuit to Circuit: {e}")
+                raise Exception(f"Error converting mimiq::Circuit to Circuit: {e}")
         return qua_circuit
 
     def convert_qua_to_mimiq_circuit(self, qua_circuit: Circuit) -> MimiqCircuit:
@@ -230,15 +214,14 @@ class Quantanium:
         """
         with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
             try:
-                pp = ProtoParser()
+                pp = ProtoParser()    
                 pp.save_proto(tmp.name, qua_circuit)
                 mimiq_circuit = MimiqCircuit()
                 mimiq_circuit = mimiq_circuit.loadproto(tmp)
             except Exception as e:
-                raise Exception(
-                    f"Error converting Circuit to mimiq::Circuit: {e}")
+                raise Exception(f"Error converting Circuit to mimiq::Circuit: {e}")
         return mimiq_circuit
-
+    
     def parse_qasm(self, qasm_file: str) -> MimiqCircuit:
         """
         Parses a QASM file and converts it into a MimiqCircuit.
@@ -278,8 +261,7 @@ class Quantanium:
                 mimiq_results = QCSResults()
                 mimiq_results = mimiq_results.loadproto(tmp)
             except Exception as e:
-                raise Exception(
-                    f"Error converting QCSResults to QCSResult: {e}")
+                raise Exception(f"Error converting QCSResults to QCSResult: {e}")
 
         return mimiq_results
 
@@ -321,8 +303,7 @@ class Quantanium:
         elif isinstance(circuit, str):
             qua_circuit = self.convert_qasm_to_qua_circuit(circuit)
         else:
-            raise TypeError(
-                "circuit must be either a Circuit or mimiq::Circuit")
+            raise TypeError("circuit must be either a Circuit or mimiq::Circuit")
         try:
             if seed is None:
                 seed = int(time.time())
@@ -330,8 +311,7 @@ class Quantanium:
             if bitstrings is None:
                 bs = []
             else:
-                bs = [QuantaniumBitVector(bitstring.to01())
-                      for bitstring in bitstrings]
+                bs = [QuantaniumBitVector(bitstring.to01()) for bitstring in bitstrings]
 
             qua_result, sv = execute_double(qua_circuit, nsamples, seed, bs)
             self._statevector = sv
@@ -341,7 +321,7 @@ class Quantanium:
             raise Exception(f"Error executing the Circuit: {e}")
 
         return result
-
+    
     def get_statevector(self):
         """
         Returns the statevector from the last execution.
@@ -350,10 +330,8 @@ class Quantanium:
             list: A list of complex numbers representing the statevector.
         """
         if not hasattr(self, "_statevector"):
-            raise RuntimeError(
-                "Statevector is not available. Run 'execute' first.")
+            raise RuntimeError("Statevector is not available. Run 'execute' first.")
         return self._statevector
-
+    
     def get_results(self, *args, **kwargs):
-        raise RuntimeError(
-            "get_results is only available for remote execution.")
+        raise RuntimeError("get_results is only available for remote execution.")
