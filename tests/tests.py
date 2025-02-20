@@ -6,11 +6,11 @@ import inspect
 from random import random
 
 
-class TestQleo(unittest.TestCase):
+class TestQuantanium(unittest.TestCase):
 
     def setUp(self):
         self.c = Circuit()
-        self.sim = Qleo()
+        self.sim = Quantanium()
 
     def test_one_qubit_gates(self):
 
