@@ -101,11 +101,11 @@ jobs:
     - uses: pypa/cibuildwheel@v2.22
       env:
         CIBW_ENABLE: cpython-prerelease
-        CIBW_SKIP: cp*-musllinux* cp*-macosx_arm64
+        CIBW_SKIP: cp*-musllinux*
         CIBW_BUILD: "cp310-* cp311-* cp312-* cp313*-"
         CIBW_ARCHS_WINDOWS: x86 #auto ARM64
         CIBW_ARCHS_LINUX: x86_64 #"auto aarch64" #x86_64 # On an Linux Intel runner, build Intel and ARM wheels
-        CIBW_ARCHS_MACOS: "x86_64 arm64"   # x86_64 #universal2 
+        CIBW_ARCHS_MACOS: x86_64 #arm64"   # x86_64 #universal2 
         CIBW_PLATFORM_TAG_MACOS: "macosx_13_0"
 
         
