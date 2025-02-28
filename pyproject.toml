@@ -8,7 +8,7 @@ version = "0.1.13"
 authors = [{ name = "QPerfect", email = "anna.leonteva@qperfect.io" }]
 description = "Python wrapper for the MIMIQ Quantanium statevector engine."
 readme = "README.md"
-requires-python = "^3.9"
+requires-python = ">=3.9"
 dependencies = ["numpy", "mimiqcircuits"]
 
 [tool.scikit-build]
