@@ -60,5 +60,5 @@ jobs:
       - name: Publish release distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/
+          packages-dir: dist/quantanium_wheels/wheelhouse/.
           password: ${{ secrets.PYPI_API_TOKEN }}
