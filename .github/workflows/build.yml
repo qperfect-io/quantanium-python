@@ -130,14 +130,21 @@ jobs:
           #unzip boost_1_86_0.zip -d C:/Boost
           #set BOOST_ROOT=C:/Boost/boost_1_86_0
           #echo "Boost installed at %BOOST_ROOT%"
-          curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-win64.zip
-          unzip protoc-21.12-win64.zip -d C:/Protobuf
-          set PATH=C:/Protobuf/bin;%PATH%
-          protoc --version
-          echo "Protobuf installed and available in PATH"
-          echo "BOOST_ROOT=%BOOST_ROOT%"
-          echo "Protobuf installed at C:/Protobuf"
-          echo off
+          #curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-win64.zip
+          #unzip protoc-21.12-win64.zip -d C:/Protobuf
+          #set PATH=C:/Protobuf/bin;%PATH%
+          #protoc --version
+          #echo "Protobuf installed and available in PATH"
+          #echo "BOOST_ROOT=%BOOST_ROOT%"
+          #echo "Protobuf installed at C:/Protobuf"
+          #echo off
+          curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download &&
+          powershell -Command "Expand-Archive -Path boost_1_86_0.zip -DestinationPath C:\Boost" &&
+          curl -L -o protoc-21.12-win64.zip https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-win64.zip &&
+          powershell -Command "Expand-Archive -Path protoc-21.12-win64.zip -DestinationPath C:\Protobuf" &&
+          setx BOOST_ROOT "C:\Boost\boost_1_86_0" &&
+          setx PATH "C:\Protobuf\bin;%PATH%" &&
+          C:\Protobuf\bin\protoc.exe --version
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
             set -x
