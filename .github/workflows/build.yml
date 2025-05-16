@@ -75,7 +75,7 @@ jobs:
         elif [[ "${{ matrix.os }}" == "macos-13" ]]; then
           brew install boost gcc llvm libomp protobuf
         elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-	  curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download
+          curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download
           unzip boost_1_86_0.zip -d C:/Boost
           set BOOST_ROOT=C:/Boost/boost_1_86_0
           #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
