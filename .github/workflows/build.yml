@@ -116,11 +116,6 @@ jobs:
         CIBW_ARCHS_MACOS: x86_64 #arm64"   # x86_64 #universal2 
         CIBW_PLATFORM_TAG_MACOS: "macosx_13_0"
         
-        #CIBW_BUILD_VERBOSITY: 3
-        # 
-        # Installation for MacOS
-        # if [[ "${{ matrix.os }}" == "macos-13" ]]; then
-        # fi
         CIBW_BEFORE_BUILD: |
           # python -m pip install cmake
         CIBW_BEFORE_ALL_WINDOWS: |
@@ -187,9 +182,7 @@ jobs:
         #CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}'
         
    
-        CIBW_ENVIRONMENT_WINDOWS: >
-          BOOST_ROOT=C:/Boost/boost_1_86_0
-          PATH=C:/Protobuf/bin;%PATH%
+        CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT=C:/Boost/boost_1_86_0 PATH=C:/Protobuf/bin
 
         CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=13.0
 
