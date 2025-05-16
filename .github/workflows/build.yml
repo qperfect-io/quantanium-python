@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:  # IMPORTANT: macos-13 is an intel runner, macos-14 is apple silicon
-        os: [macos-13] #[ubuntu-latest, macos-13]    # [ubuntu-latest, macos-13]#, windows-latest]
+        os: [windows-latest] #[ubuntu-latest, macos-13]    # [ubuntu-latest, macos-13]#, windows-latest]
  
     steps:
     - uses: actions/checkout@v4
@@ -124,12 +124,15 @@ jobs:
         CIBW_BEFORE_BUILD: |
           # python -m pip install cmake
         CIBW_BEFORE_ALL_WINDOWS: |
+          set -x
+          echo "---------------------DEBUG-------------------------------"
           curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download &&
           powershell -Command "Expand-Archive -Path boost_1_86_0.zip -DestinationPath C:\Boost" &&
           curl -L -o protoc-21.12-win64.zip https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-win64.zip &&
           powershell -Command "Expand-Archive -Path protoc-21.12-win64.zip -DestinationPath C:\Protobuf" &&
           C:\Protobuf\bin\protoc.exe --version
-
+          echo "--------------------END DEBUG----------------------------"
+          set +x
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
             set -x
@@ -183,10 +186,8 @@ jobs:
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}'
         
-        CIBW_ENVIRONMENT_WINDOWS: |
-          BOOST_ROOT=C:/Boost/boost_1_86_0
-          PATH=C:/Protobuf/bin;%PATH%
    
+        CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT=C:/Boost/boost_1_86_0 PATH=C:/Protobuf/bin;%PATH%
 
         CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=13.0
 
