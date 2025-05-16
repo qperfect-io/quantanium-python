@@ -1,7 +1,11 @@
 name: Wheels
 
+#on:
+#  workflow_call:
 on:
-  workflow_call:
+  push:
+    branches:
+      - devel
 
 env:
   FORCE_COLOR: 3
