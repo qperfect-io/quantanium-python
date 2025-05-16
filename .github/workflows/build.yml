@@ -75,8 +75,11 @@ jobs:
         elif [[ "${{ matrix.os }}" == "macos-13" ]]; then
           brew install boost gcc llvm libomp protobuf
         elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
-          unzip boost_1_86_0.zip
+	  curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download
+          unzip boost_1_86_0.zip -d C:/Boost
+          set BOOST_ROOT=C:/Boost/boost_1_86_0
+          #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
+          #unzip boost_1_86_0.zip
         fi
       shell: bash
 
@@ -123,10 +126,10 @@ jobs:
           # python -m pip install cmake
         CIBW_BEFORE_ALL_WINDOWS: |
           echo on
-          curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
-          unzip boost_1_86_0.zip -d C:/Boost
-          set BOOST_ROOT=C:/Boost/boost_1_86_0
-          echo "Boost installed at %BOOST_ROOT%"
+          #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
+          #unzip boost_1_86_0.zip -d C:/Boost
+          #set BOOST_ROOT=C:/Boost/boost_1_86_0
+          #echo "Boost installed at %BOOST_ROOT%"
           curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-win64.zip
           unzip protoc-21.12-win64.zip -d C:/Protobuf
           set PATH=C:/Protobuf/bin;%PATH%
