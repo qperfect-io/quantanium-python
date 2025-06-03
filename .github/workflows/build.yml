@@ -120,7 +120,6 @@ jobs:
           # python -m pip install cmake
        
         CIBW_BEFORE_ALL_WINDOWS: |
-            echo ----- INSTALLING BOOST AND PROTOBUF VIA VCPKG ----- &&
             git clone https://github.com/microsoft/vcpkg.git &&
             cd vcpkg &&
             bootstrap-vcpkg.bat &&
@@ -132,8 +131,8 @@ jobs:
             set PATH=%PROTOC_PATH%;%PATH% &&
             where protoc &&
             protoc --version &&
-            echo CMAKE_TOOLCHAIN_FILE=%CD%\scripts\buildsystems\vcpkg.cmake >> %CIBW_ENVIRONMENT% &&
-            echo ----- INSTALL COMPLETE -----
+            set CMAKE_TOOLCHAIN_FILE=%CD%\scripts\buildsystems\vcpkg.cmake
+          
 
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
