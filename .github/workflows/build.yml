@@ -120,7 +120,7 @@ jobs:
           # python -m pip install cmake
        
         CIBW_BEFORE_ALL_WINDOWS: |
-            cmd.exe /C "echo ----- INSTALLING BOOST AND PROTOBUF VIA VCPKG ----- &&
+            echo ----- INSTALLING BOOST AND PROTOBUF VIA VCPKG ----- &&
             git clone https://github.com/microsoft/vcpkg.git &&
             cd vcpkg &&
             bootstrap-vcpkg.bat &&
@@ -130,12 +130,10 @@ jobs:
             vcpkg.exe install boost-log:x64-windows &&
             set PROTOC_PATH=%CD%\installed\x64-windows\tools\protobuf &&
             set PATH=%PROTOC_PATH%;%PATH% &&
-            echo Checking protoc in: %PROTOC_PATH% &&
             where protoc &&
             protoc --version &&
-            echo VCPKG_ROOT=%CD%>> %GITHUB_ENV% &&
-            echo CMAKE_TOOLCHAIN_FILE=%CD%\scripts\buildsystems\vcpkg.cmake>> %GITHUB_ENV% &&
-            echo ----- INSTALL COMPLETE -----"
+            echo CMAKE_TOOLCHAIN_FILE=%CD%\scripts\buildsystems\vcpkg.cmake >> %CIBW_ENVIRONMENT% &&
+            echo ----- INSTALL COMPLETE -----
 
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
@@ -197,7 +195,7 @@ jobs:
         #CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}'
         
    
-        CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT=C:/Boost/boost_1_86_0 PATH=C:/Protobuf/bin
+        CIBW_ENVIRONMENT_WINDOWS: CMAKE_TOOLCHAIN_FILE=%CD%\vcpkg\scripts\buildsystems\vcpkg.cmake
 
         CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=14.0
 
