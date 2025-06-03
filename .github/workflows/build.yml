@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:  # IMPORTANT: macos-13 is an intel runner, macos-14 is apple silicon
-        os: [windows-latest, ubuntu-latest, macos-14]    # [ubuntu-latest, macos-13]#, windows-latest]
+        os: [#windows-latest, ubuntu-latest, macos-14]    # [ubuntu-latest, macos-13]#, windows-latest]
  
     steps:
     - uses: actions/checkout@v4
@@ -72,7 +72,7 @@ jobs:
       run: |
         if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
-        elif [[ "${{ matrix.os }}" == "macos-13" ]]; then
+        elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
           brew install boost gcc llvm libomp protobuf
         elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
           curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download
@@ -194,7 +194,7 @@ jobs:
    
         CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT=C:/Boost/boost_1_86_0 PATH=C:/Protobuf/bin
 
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=13.0
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=14.0
 
 
     - name: Verify clean directory
