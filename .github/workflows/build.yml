@@ -141,11 +141,17 @@ jobs:
             brew uninstall protobuf
             brew install protobuf@3
             brew link --force protobuf@3
+            brew install boost
+            brew link --force boost
             brew list
             DETECTED_ARCH=$(uname -m)
             echo "Detected architecture: $DETECTED_ARCH"
-            export CXXFLAGS="-I$(brew --prefix protobuf)/include"
-            export LDFLAGS="-L$(brew --prefix protobuf)/lib"
+         
+            export BOOST_ROOT=$(brew --prefix boost)
+            export CXXFLAGS="-I$BOOST_ROOT/include -I$(brew --prefix protobuf)/include"
+            export LDFLAGS="-L$BOOST_ROOT/lib -L$(brew --prefix protobuf)/lib"
+            # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
+            # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
             echo "Protobuf installed at $(brew --prefix protobuf)"
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
