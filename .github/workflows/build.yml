@@ -120,19 +120,22 @@ jobs:
           # python -m pip install cmake
        
         CIBW_BEFORE_ALL_WINDOWS: |
-            echo "----- INSTALLING BOOST AND PROTOBUF VIA VCPKG -----"
-            git clone https://github.com/microsoft/vcpkg.git
-            cd vcpkg
-            .\bootstrap-vcpkg.bat
-            .\vcpkg.exe install protobuf:x64-windows
-            .\vcpkg.exe install boost-program-options:x64-windows
-            .\vcpkg.exe install boost-serialization:x64-windows
-            .\vcpkg.exe install boost-log:x64-windows
-            set "PROTOC_PATH=%CD%\installed\x64-windows\tools\protobuf" &&
-            set "PATH=%PROTOC_PATH%;%PATH%" &&
+            cmd.exe /C "echo ----- INSTALLING BOOST AND PROTOBUF VIA VCPKG ----- &&
+            git clone https://github.com/microsoft/vcpkg.git &&
+            cd vcpkg &&
+            bootstrap-vcpkg.bat &&
+            vcpkg.exe install protobuf:x64-windows &&
+            vcpkg.exe install boost-program-options:x64-windows &&
+            vcpkg.exe install boost-serialization:x64-windows &&
+            vcpkg.exe install boost-log:x64-windows &&
+            set PROTOC_PATH=%CD%\installed\x64-windows\tools\protobuf &&
+            set PATH=%PROTOC_PATH%;%PATH% &&
+            echo Checking protoc in: %PROTOC_PATH% &&
+            where protoc &&
+            protoc --version &&
             echo VCPKG_ROOT=%CD%>> %GITHUB_ENV% &&
             echo CMAKE_TOOLCHAIN_FILE=%CD%\scripts\buildsystems\vcpkg.cmake>> %GITHUB_ENV% &&
-            echo "----- INSTALL COMPLETE -----"
+            echo ----- INSTALL COMPLETE -----"
 
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
