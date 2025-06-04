@@ -124,15 +124,15 @@ jobs:
             git clone https://github.com/microsoft/vcpkg.git;
             cd vcpkg;
             ./bootstrap-vcpkg.bat;
-            ./vcpkg.exe install protobuf:x64-windows;
             ./vcpkg.exe install boost-program-options:x64-windows;
             ./vcpkg.exe install boost-serialization:x64-windows;
             ./vcpkg.exe install boost-log:x64-windows;
+            ./vcpkg.exe install protobuf:x64-windows;
 
-            \$VCPKG_ROOT = (Resolve-Path .).Path;
-            echo \"CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=\$VCPKG_ROOT\\scripts\\buildsystems\\vcpkg.cmake\" >> \$env:CIBW_ENVIRONMENT;
-
-            "
+            $VCPKG_ROOT = (Resolve-Path .).Path;
+            $TOOLCHAIN = Join-Path $VCPKG_ROOT 'scripts/buildsystems/vcpkg.cmake';
+            echo 'CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=' + $TOOLCHAIN >> $env:CIBW_ENVIRONMENT;
+          "
 
           
 
@@ -197,6 +197,7 @@ jobs:
         #CIBW_ENVIRONMENT_WINDOWS:    CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
 
    
+        CIBW_ENVIRONMENT_WINDOWS: CMAKE_ARGS=$CMAKE_ARGS
         #CIBW_ENVIRONMENT_WINDOWS: CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 
