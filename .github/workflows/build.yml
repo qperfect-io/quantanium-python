@@ -121,30 +121,22 @@ jobs:
        
         CIBW_BEFORE_ALL_WINDOWS: |
           powershell -ExecutionPolicy Bypass -Command "
-              git clone https://github.com/microsoft/vcpkg.git;
-              cd vcpkg;
-              ./bootstrap-vcpkg.bat;
-              ./vcpkg.exe install protobuf:x64-windows;
-              ./vcpkg.exe install boost-program-options:x64-windows;
-              ./vcpkg.exe install boost-serialization:x64-windows;
-              ./vcpkg.exe install boost-log:x64-windows;
+            git clone https://github.com/microsoft/vcpkg.git;
+            cd vcpkg;
+            ./bootstrap-vcpkg.bat;
+            ./vcpkg.exe install protobuf:x64-windows;
+            ./vcpkg.exe install boost-program-options:x64-windows;
+            ./vcpkg.exe install boost-serialization:x64-windows;
+            ./vcpkg.exe install boost-log:x64-windows;
 
-              \$VCPKG_ROOT = (Get-Location).Path;
-              \$PROTOC_PATH = Join-Path \$VCPKG_ROOT 'installed/x64-windows/tools/protobuf';
-              \$BOOST_INCLUDE = Join-Path \$VCPKG_ROOT 'installed/x64-windows/include';
-              \$BOOST_LIB = Join-Path \$VCPKG_ROOT 'installed/x64-windows/lib';
-              \$PROTOBUF_INCLUDE = Join-Path \$VCPKG_ROOT 'installed/x64-windows/include';
-              \$PROTOBUF_LIB = Join-Path \$VCPKG_ROOT 'installed/x64-windows/lib';
+            \$VCPKG_ROOT = (Get-Location).Path;
+            \$PROTOC_PATH = Join-Path \$VCPKG_ROOT 'installed/x64-windows/tools/protobuf';
+            \$env:PATH = \"\$PROTOC_PATH;\$env:PATH\";
+            where.exe protoc;
+            protoc --version;
 
-              \$env:PATH = \"\$PROTOC_PATH;\$env:PATH\";
-              Write-Host \"Protoc version:\";
-              where.exe protoc;
-              protoc --version;
-
-              \"CMAKE_TOOLCHAIN_FILE=\$VCPKG_ROOT\\scripts\\buildsystems\\vcpkg.cmake\" | Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append;
-              \"CXXFLAGS=-I\$BOOST_INCLUDE -I\$PROTOBUF_INCLUDE\" | Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append;
-              \"LDFLAGS=-L\$BOOST_LIB -L\$PROTOBUF_LIB\" | Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append;
-            "
+            \"CMAKE_TOOLCHAIN_FILE=\$VCPKG_ROOT\\scripts\\buildsystems\\vcpkg.cmake\" | Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append;
+          "
 
           
 
@@ -206,7 +198,7 @@ jobs:
           set +x
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}'
-        CIBW_ENVIRONMENT_WINDOWS:   CMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE CXXFLAGS=$CXXFLAGS LDFLAGS=$LDFLAGS
+        CIBW_ENVIRONMENT_WINDOWS:    CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
 
    
         #CIBW_ENVIRONMENT_WINDOWS: CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
