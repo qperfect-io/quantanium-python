@@ -83,21 +83,6 @@ jobs:
         fi
       shell: bash
 
-
-
-   # - uses: astral-sh/setup-uv@v4
-   # - name: Update Submodules to Latest Commit
-   #   run: |
-   #     git submodule sync
-   #     git submodule update --init --recursive
-   #     git submodule update --recursive --remote 
-   #     git -C libs/quantanium fetch origin main
-   #     git -C libs/quantanium reset --hard origin/main  # Reset to latest commit
-          
-        # Verify the commit hash
-   #     echo "Updated libs/quantanium to commit:"
-   #     git -C libs/quantanium rev-parse HEAD
-
    
     - name: Check Submodule Commits 
       run: |
@@ -132,13 +117,9 @@ jobs:
             $VCPKG_ROOT = (Resolve-Path .).Path;
             $TOOLCHAIN = Join-Path $VCPKG_ROOT 'scripts/buildsystems/vcpkg.cmake';
 
-            where.exe protoc;
-            protoc --version;
-
-            # Inject CIBW_ENVIRONMENT_WINDOWS directly
-            Add-Content -Path $env:GITHUB_ENV "CIBW_ENVIRONMENT_WINDOWS=CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN"
+            # Inject full env line for CMAKE_ARGS
+            Add-Content -Path $env:GITHUB_ENV 'CIBW_ENVIRONMENT_WINDOWS=CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=' + $TOOLCHAIN;
           "
-
           
 
         CIBW_BEFORE_ALL_MACOS: |
@@ -203,7 +184,7 @@ jobs:
 
    
   
-        CIBW_ENVIRONMENT_WINDOWS: CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+        #CIBW_ENVIRONMENT_WINDOWS: CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 
         CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=14.0
