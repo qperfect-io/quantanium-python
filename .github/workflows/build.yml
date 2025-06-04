@@ -119,6 +119,7 @@ jobs:
             ./vcpkg.exe install boost-serialization:x64-windows;
             ./vcpkg.exe install boost-log:x64-windows;
             ./vcpkg.exe install protobuf:x64-windows;
+            set CMAKE_TOOLCHAIN_FILE = C:\vcpkg\scripts\buildsystems\vcpkg.cmake
             where.exe protoc;
             protoc --version;
           "
