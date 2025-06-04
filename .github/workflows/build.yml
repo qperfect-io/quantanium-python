@@ -120,29 +120,31 @@ jobs:
           # python -m pip install cmake
        
         CIBW_BEFORE_ALL_WINDOWS: |
-          git clone https://github.com/microsoft/vcpkg.git
-          cd vcpkg
-          ./bootstrap-vcpkg.bat
-          ./vcpkg.exe install protobuf:x64-windows
-          ./vcpkg.exe install boost-program-options:x64-windows
-          ./vcpkg.exe install boost-serialization:x64-windows
-          ./vcpkg.exe install boost-log:x64-windows
+          powershell -ExecutionPolicy Bypass -Command "
+              git clone https://github.com/microsoft/vcpkg.git;
+              cd vcpkg;
+              ./bootstrap-vcpkg.bat;
+              ./vcpkg.exe install protobuf:x64-windows;
+              ./vcpkg.exe install boost-program-options:x64-windows;
+              ./vcpkg.exe install boost-serialization:x64-windows;
+              ./vcpkg.exe install boost-log:x64-windows;
 
-          $VCPKG_ROOT = (Get-Location).Path
-          $PROTOC_PATH = Join-Path $VCPKG_ROOT "installed/x64-windows/tools/protobuf"
-          $BOOST_INCLUDE = Join-Path $VCPKG_ROOT "installed/x64-windows/include"
-          $BOOST_LIB = Join-Path $VCPKG_ROOT "installed/x64-windows/lib"
-          $PROTOBUF_INCLUDE = Join-Path $VCPKG_ROOT "installed/x64-windows/include"
-          $PROTOBUF_LIB = Join-Path $VCPKG_ROOT "installed/x64-windows/lib"
+              \$VCPKG_ROOT = (Get-Location).Path;
+              \$PROTOC_PATH = Join-Path \$VCPKG_ROOT 'installed/x64-windows/tools/protobuf';
+              \$BOOST_INCLUDE = Join-Path \$VCPKG_ROOT 'installed/x64-windows/include';
+              \$BOOST_LIB = Join-Path \$VCPKG_ROOT 'installed/x64-windows/lib';
+              \$PROTOBUF_INCLUDE = Join-Path \$VCPKG_ROOT 'installed/x64-windows/include';
+              \$PROTOBUF_LIB = Join-Path \$VCPKG_ROOT 'installed/x64-windows/lib';
 
-          # Update environment for protoc
-          $env:PATH = "$PROTOC_PATH;$env:PATH"
+              \$env:PATH = \"\$PROTOC_PATH;\$env:PATH\";
+              Write-Host \"Protoc version:\";
+              where.exe protoc;
+              protoc --version;
 
-          # Set flags for compiler
-          "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "CXXFLAGS=-I$BOOST_INCLUDE -I$PROTOBUF_INCLUDE" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "LDFLAGS=-L$BOOST_LIB -L$PROTOBUF_LIB" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
+              \"CMAKE_TOOLCHAIN_FILE=\$VCPKG_ROOT\\scripts\\buildsystems\\vcpkg.cmake\" | Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append;
+              \"CXXFLAGS=-I\$BOOST_INCLUDE -I\$PROTOBUF_INCLUDE\" | Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append;
+              \"LDFLAGS=-L\$BOOST_LIB -L\$PROTOBUF_LIB\" | Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append;
+            "
 
           
 
