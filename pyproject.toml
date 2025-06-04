@@ -11,6 +11,10 @@ readme = "README.md"
 requires-python = " >= 3.9"
 dependencies = ["numpy", "mimiqcircuits"]
 
+
+[tool.cibuildwheel.windows.cmake]
+configure-args = ["-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"]
+
 [tool.scikit-build]
 cmake.version = "==3.22.1"
 wheel.expand-macos-universal-tags = true
