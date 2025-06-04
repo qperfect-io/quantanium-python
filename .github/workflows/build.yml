@@ -131,7 +131,12 @@ jobs:
 
             $VCPKG_ROOT = (Resolve-Path .).Path;
             $TOOLCHAIN = Join-Path $VCPKG_ROOT 'scripts/buildsystems/vcpkg.cmake';
-            echo 'CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=' + $TOOLCHAIN >> $env:CIBW_ENVIRONMENT;
+
+            where.exe protoc;
+            protoc --version;
+
+            # Inject CIBW_ENVIRONMENT_WINDOWS directly
+            Add-Content -Path $env:GITHUB_ENV "CIBW_ENVIRONMENT_WINDOWS=CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN"
           "
 
           
@@ -197,7 +202,7 @@ jobs:
         #CIBW_ENVIRONMENT_WINDOWS:    CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
 
    
-        CIBW_ENVIRONMENT_WINDOWS: CMAKE_ARGS=$CMAKE_ARGS
+  
         #CIBW_ENVIRONMENT_WINDOWS: CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 
