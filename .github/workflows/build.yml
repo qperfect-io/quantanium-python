@@ -116,7 +116,7 @@ jobs:
         CIBW_ARCHS_MACOS: arm64 #x86_64    # x86_64 #universal2 
         CIBW_PLATFORM_TAG_MACOS: "macosx_14_0" #"macosx_13_0"
         
-        CIBW_BEFORE_BUILD: |
+        #CIBW_BEFORE_BUILD: |
           # python -m pip install cmake
        
         CIBW_BEFORE_ALL_WINDOWS: |
