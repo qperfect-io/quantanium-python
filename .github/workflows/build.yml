@@ -103,9 +103,10 @@ jobs:
         
         #CIBW_BEFORE_BUILD: |
           # python -m pip install cmake
+
         CIBW_ENVIRONMENT_WINDOWS: |
-          CIBW_CMAKE_CONFIGURE_OPTIONS="-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows"
-          CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows"
+          CIBW_CMAKE_CONFIGURE_OPTIONS=-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows
+          CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
 
 
         CIBW_BEFORE_ALL_WINDOWS: |
