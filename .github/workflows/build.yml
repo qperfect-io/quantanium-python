@@ -129,14 +129,10 @@ jobs:
             ./vcpkg.exe install boost-serialization:x64-windows;
             ./vcpkg.exe install boost-log:x64-windows;
 
-            \$VCPKG_ROOT = (Get-Location).Path;
-            \$PROTOC_PATH = Join-Path \$VCPKG_ROOT 'installed/x64-windows/tools/protobuf';
-            \$env:PATH = \"\$PROTOC_PATH;\$env:PATH\";
-            where.exe protoc;
-            protoc --version;
+            \$VCPKG_ROOT = (Resolve-Path .).Path;
+            echo \"CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=\$VCPKG_ROOT\\scripts\\buildsystems\\vcpkg.cmake\" >> \$env:CIBW_ENVIRONMENT;
 
-            \"CMAKE_TOOLCHAIN_FILE=\$VCPKG_ROOT\\scripts\\buildsystems\\vcpkg.cmake\" | Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append;
-          "
+            "
 
           
 
@@ -198,7 +194,7 @@ jobs:
           set +x
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}'
-        CIBW_ENVIRONMENT_WINDOWS:    CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
+        #CIBW_ENVIRONMENT_WINDOWS:    CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
 
    
         #CIBW_ENVIRONMENT_WINDOWS: CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
