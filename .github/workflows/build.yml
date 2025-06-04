@@ -106,19 +106,15 @@ jobs:
        
         CIBW_BEFORE_ALL_WINDOWS: |
           powershell -ExecutionPolicy Bypass -Command "
-            git clone https://github.com/microsoft/vcpkg.git;
-            cd vcpkg;
+            git clone https://github.com/microsoft/vcpkg.git C:/vcpkg;
+            cd C:/vcpkg;
             ./bootstrap-vcpkg.bat;
             ./vcpkg.exe install boost-program-options:x64-windows;
             ./vcpkg.exe install boost-serialization:x64-windows;
             ./vcpkg.exe install boost-log:x64-windows;
             ./vcpkg.exe install protobuf:x64-windows;
-
-            $VCPKG_ROOT = (Resolve-Path .).Path;
-            $TOOLCHAIN = Join-Path $VCPKG_ROOT 'scripts/buildsystems/vcpkg.cmake';
-
-            # Inject full env line for CMAKE_ARGS
-            Add-Content -Path $env:GITHUB_ENV 'CIBW_ENVIRONMENT_WINDOWS=CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=' + $TOOLCHAIN;
+            where.exe protoc;
+            protoc --version;
           "
           
 
@@ -180,7 +176,7 @@ jobs:
           set +x
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}'
-        #CIBW_ENVIRONMENT_WINDOWS:    CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
+        CIBW_ENVIRONMENT_WINDOWS:    CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
    
   
