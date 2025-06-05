@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:  # IMPORTANT: macos-13 is an intel runner, macos-14 is apple silicon
-        os: [windows-latest] #, ubuntu-latest, macos-14]    # [ubuntu-latest, macos-13]#, windows-latest]
+        os: [windows-latest, ubuntu-latest, macos-14]    # [ubuntu-latest, macos-13]#, windows-latest]
  
     steps:
     - uses: actions/checkout@v4
