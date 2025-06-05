@@ -74,12 +74,19 @@ jobs:
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
         elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
           brew install boost gcc llvm libomp protobuf
-        # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-        #   curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download
-        #   unzip boost_1_86_0.zip -d C:/Boost
-        #   set BOOST_ROOT=C:/Boost/boost_1_86_0
-        #   #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
-        #   #unzip boost_1_86_0.zip
+        elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+          cd C:/vcpkg
+          .\bootstrap-vcpkg.bat
+          .\vcpkg.exe install boost-program-options:x64-windows
+          .\vcpkg.exe install boost-serialization:x64-windows
+          .\vcpkg.exe install boost-log:x64-windows
+          .\vcpkg.exe install protobuf:x64-windows
+          # curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download
+          # unzip boost_1_86_0.zip -d C:/Boost
+          # set BOOST_ROOT=C:/Boost/boost_1_86_0
+          #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
+          #unzip boost_1_86_0.zip
         fi
       shell: bash
 
@@ -106,32 +113,14 @@ jobs:
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;
 
-        CMAKE_ARGS: -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        CMAKE_ARGS: -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
         CIBW_ENVIRONMENT_WINDOWS: |
           BOOST_ROOT=C:/vcpkg/installed/x64-windows
           BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
           BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
 
-        CIBW_BEFORE_ALL_WINDOWS: |
-          cmd /c "
-            if exist C:\vcpkg rmdir /S /Q C:\vcpkg
-            git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
-            cd C:\vcpkg
-            .\bootstrap-vcpkg.bat
-
-            if not exist C:\vcpkg\scripts\buildsystems\vcpkg.cmake (
-              echo ERROR: vcpkg.cmake not found! && exit /B 1
-            )
-
-            .\vcpkg.exe install protobuf:x64-windows
-            .\vcpkg.exe install boost-program-options:x64-windows
-            .\vcpkg.exe install boost-serialization:x64-windows
-            .\vcpkg.exe install boost-log:x64-windows
-
-            where.exe protoc
-            protoc --version
-          "
+        #CIBW_BEFORE_ALL_WINDOWS: |
           # if exist C:\vcpkg rmdir /S /Q C:\vcpkg
           # git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
           # cd C:/vcpkg
