@@ -21,7 +21,7 @@ cmake_minimum_required(VERSION 3.15...3.28)
 # Start QuantaniumPy project
 # ---------------------------------------------------------------------------------------
 
-set(QUANTANIUM_VERSION 0.1.0)
+set(QUANTANIUM_VERSION 0.1.13)
 
 project(QuantaniumPy VERSION ${QUANTANIUMPY_VERSION} LANGUAGES CXX)
 
