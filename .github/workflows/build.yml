@@ -5,6 +5,7 @@ name: Wheels
 on:
   push:
     branches:
+      - main
       - devel
 
 env:
