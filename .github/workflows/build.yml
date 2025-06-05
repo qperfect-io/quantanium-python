@@ -75,6 +75,7 @@ jobs:
         elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
           brew install boost gcc llvm libomp protobuf
         elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          if exist C:\vcpkg rmdir /S /Q C:\vcpkg
           git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
           cd C:/vcpkg
           .\bootstrap-vcpkg.bat
