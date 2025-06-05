@@ -104,34 +104,44 @@ jobs:
         #CIBW_BEFORE_BUILD: |
           # python -m pip install cmake
 
-        CIBW_CMAKE_CONFIGURE_OPTIONS: >-
-          -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;
-          -DVCPKG_TARGET_TRIPLET=x64-windows
+        CIBW_CMAKE_CONFIGURE_OPTIONS: -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;
 
-
-        CMAKE_ARGS: >-
-          -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
-          -DVCPKG_TARGET_TRIPLET=x64-windows
-
+        CMAKE_ARGS: -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
 
         CIBW_ENVIRONMENT_WINDOWS: |
           BOOST_ROOT=C:/vcpkg/installed/x64-windows
           BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
           BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
 
-
         CIBW_BEFORE_ALL_WINDOWS: |
-          if exist C:\vcpkg rmdir /S /Q C:\vcpkg
-          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
-          cd C:/vcpkg
-          .\bootstrap-vcpkg.bat
-          .\vcpkg.exe install boost-program-options:x64-windows
-          .\vcpkg.exe install boost-serialization:x64-windows
-          .\vcpkg.exe install boost-log:x64-windows
-          .\vcpkg.exe install protobuf:x64-windows
-          where.exe protoc
-          protoc --version
+          cmd /c "
+            if exist C:\vcpkg rmdir /S /Q C:\vcpkg
+            git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+            cd C:\vcpkg
+            .\bootstrap-vcpkg.bat
 
+            if not exist C:\vcpkg\scripts\buildsystems\vcpkg.cmake (
+              echo ERROR: vcpkg.cmake not found! && exit /B 1
+            )
+
+            .\vcpkg.exe install protobuf:x64-windows
+            .\vcpkg.exe install boost-program-options:x64-windows
+            .\vcpkg.exe install boost-serialization:x64-windows
+            .\vcpkg.exe install boost-log:x64-windows
+
+            where.exe protoc
+            protoc --version
+          "
+          # if exist C:\vcpkg rmdir /S /Q C:\vcpkg
+          # git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+          # cd C:/vcpkg
+          # .\bootstrap-vcpkg.bat
+          # .\vcpkg.exe install boost-program-options:x64-windows
+          # .\vcpkg.exe install boost-serialization:x64-windows
+          # .\vcpkg.exe install boost-log:x64-windows
+          # .\vcpkg.exe install protobuf:x64-windows
+          # where.exe protoc
+          # protoc --version
 
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
