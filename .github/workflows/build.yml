@@ -75,14 +75,7 @@ jobs:
         elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
           brew install boost gcc llvm libomp protobuf
         # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-        #   if exist C:\vcpkg rmdir /S /Q C:\vcpkg
-        #   git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
-        #   cd C:/vcpkg
-        #   .\bootstrap-vcpkg.bat
-        #   .\vcpkg.exe install boost-program-options:x64-windows
-        #   .\vcpkg.exe install boost-serialization:x64-windows
-        #   .\vcpkg.exe install boost-log:x64-windows
-        #   .\vcpkg.exe install protobuf:x64-windows
+
         fi
       shell: bash
 
@@ -92,27 +85,21 @@ jobs:
         if (Test-Path 'C:\vcpkg') {
           Remove-Item -Recurse -Force 'C:\vcpkg'
         }
-
   
         git clone https://github.com/microsoft/vcpkg.git 'C:\vcpkg'
         Set-Location 'C:\vcpkg'
         .\bootstrap-vcpkg.bat
-
 
         if (-Not (Test-Path 'C:\vcpkg\scripts\buildsystems\vcpkg.cmake')) {
           Write-Host 'ERROR: vcpkg.cmake not found!'
           exit 1
         }
 
-      
         .\vcpkg.exe install protobuf:x64-windows
         .\vcpkg.exe install boost-program-options:x64-windows
         .\vcpkg.exe install boost-serialization:x64-windows
         .\vcpkg.exe install boost-log:x64-windows
 
-
-        where.exe protoc
-        protoc --version
       shell: pwsh
    
     - name: Check Submodule Commits 
