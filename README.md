@@ -9,11 +9,15 @@ Before installing, ensure you have:
 - **Git** installed on your system
 - **Virtual environment support** (e.g., `venv`)
 
+## Supported Platforms
+- **Windows (AMD64)**
+- **macOS (ARM64 Apple Silicon)**
+- **Ubuntu / Debian-based Linux(x86_64)**
+
 ## Installation
 
 Quantanium is implemented in C++, with a wrapper written in the Python programming language to enhance usability and ensure support with MIMIQ API.
-For the released versions of Quantanium, we provide binaries via our Git repository, specifically for the Linux platform, which only require a functional Python environment to install.
-You can do this very easily following the instructions from the next subsection.
+Quantanium distributes prebuilt Python wheels for Windows (AMD64), macOS(ARM), and Ubuntu(x86).
 
 ### Installation Quantanium-python from Binary
 Installation Steps: 
@@ -61,50 +65,7 @@ $ git clone git@github.com:qperfect-io/quantanium-python-private.git
 $ cd quantanium-python-private
 ```
 
-2. Initialize all the dependencies of the project by typing the following instructions in the command line of your `shell` terminal:
-
-```sh
-$ git submodule init && git submodule update
-```
-
-```sh
-$ cd libs/quantanium
-```
-
-```sh
-$ git submodule init && git submodule update
-```
-
-```sh
-$ cd ../../
-```
-
-
-3. Setup the build directory and build C++ code with python wrapper support by the following instructions in the command line of your `shell` terminal:
-
-```sh
-$ mkdir release-python
-
-$ cd release-python
-
-$ cmake ../
-
-$ make 
-```
-
-
-4. install the Python Package 
-
-Start by creating virtual environment (if not done yet)
-
-```sh
-python -m venv .venv 
-```
-Activate the environment by invoking the activation command:
-```sh
-source .venvs/bin/activate
-```
-Install quantanium-python locally:
+2. Install quantanium-python locally:
 
 ```sh
 pip install -e .
