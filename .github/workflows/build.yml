@@ -111,16 +111,7 @@ jobs:
               BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
               BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
         CIBW_BEFORE_ALL_WINDOWS: |
-          # git clone https://github.com/microsoft/vcpkg.git C:/vcpkg;
-          # cd C:/vcpkg;
-          # ./bootstrap-vcpkg.bat;
-          # ./vcpkg install protobuf:x64-windows
-          # ./vcpkg install boost-program-options:x64-windows
-          # ./vcpkg install boost-serialization:x64-windows
-          # ./vcpkg install boost-log:x64-windows
 
-          # where.exe protoc
-          # protoc --version;
 
           powershell -ExecutionPolicy Bypass -Command "
             git clone https://github.com/microsoft/vcpkg.git C:/vcpkg;
