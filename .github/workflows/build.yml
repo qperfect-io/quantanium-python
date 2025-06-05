@@ -74,23 +74,46 @@ jobs:
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
         elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
           brew install boost gcc llvm libomp protobuf
-        elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          if exist C:\vcpkg rmdir /S /Q C:\vcpkg
-          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
-          cd C:/vcpkg
-          .\bootstrap-vcpkg.bat
-          .\vcpkg.exe install boost-program-options:x64-windows
-          .\vcpkg.exe install boost-serialization:x64-windows
-          .\vcpkg.exe install boost-log:x64-windows
-          .\vcpkg.exe install protobuf:x64-windows
-          # curl -L -o boost_1_86_0.zip https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.zip/download
-          # unzip boost_1_86_0.zip -d C:/Boost
-          # set BOOST_ROOT=C:/Boost/boost_1_86_0
-          #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
-          #unzip boost_1_86_0.zip
+        # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+        #   if exist C:\vcpkg rmdir /S /Q C:\vcpkg
+        #   git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+        #   cd C:/vcpkg
+        #   .\bootstrap-vcpkg.bat
+        #   .\vcpkg.exe install boost-program-options:x64-windows
+        #   .\vcpkg.exe install boost-serialization:x64-windows
+        #   .\vcpkg.exe install boost-log:x64-windows
+        #   .\vcpkg.exe install protobuf:x64-windows
         fi
       shell: bash
 
+    - name: Install Boost on Windows via vcpkg
+      if: matrix.os == 'windows-latest'
+      run: |
+        if (Test-Path 'C:\vcpkg') {
+          Remove-Item -Recurse -Force 'C:\vcpkg'
+        }
+
+  
+        git clone https://github.com/microsoft/vcpkg.git 'C:\vcpkg'
+        Set-Location 'C:\vcpkg'
+        .\bootstrap-vcpkg.bat
+
+
+        if (-Not (Test-Path 'C:\vcpkg\scripts\buildsystems\vcpkg.cmake')) {
+          Write-Host 'ERROR: vcpkg.cmake not found!'
+          exit 1
+        }
+
+      
+        .\vcpkg.exe install protobuf:x64-windows
+        .\vcpkg.exe install boost-program-options:x64-windows
+        .\vcpkg.exe install boost-serialization:x64-windows
+        .\vcpkg.exe install boost-log:x64-windows
+
+
+        where.exe protoc
+        protoc --version
+      shell: pwsh
    
     - name: Check Submodule Commits 
       run: |
