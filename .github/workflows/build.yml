@@ -111,9 +111,7 @@ jobs:
               BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
               BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
         CIBW_BEFORE_ALL_WINDOWS: |
-          if (Test-Path C:\vcpkg) {
-            Remove-Item -Recurse -Force C:\vcpkg
-          }
+          if exist C:\vcpkg rmdir /S /Q C:\vcpkg
           git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
           cd C:/vcpkg
           .\bootstrap-vcpkg.bat
