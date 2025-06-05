@@ -22,7 +22,6 @@
 
 #include <quantanium/impl/gates/BaseOperation.hpp>
 #include <quantanium/impl/state/StateVector.hpp>
-#include <quantanium/utils/SignalHandler.hpp>
 // #include <quantanium/impl/state/State.hpp>
 /// format
 #include <fmt/format.h>
