@@ -111,7 +111,10 @@ jobs:
               BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
               BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
         CIBW_BEFORE_ALL_WINDOWS: |
-          git clone https://github.com/microsoft/vcpkg.git C:/vcpkg
+          if (Test-Path C:\vcpkg) {
+            Remove-Item -Recurse -Force C:\vcpkg
+          }
+          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
           cd C:/vcpkg
           .\bootstrap-vcpkg.bat
           .\vcpkg.exe install boost-program-options:x64-windows
