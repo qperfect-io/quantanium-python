@@ -32,7 +32,11 @@ jobs:
             path: wheelhouse/.
       - uses: actions/download-artifact@v4
         with:
-            name: cibw-wheels-macos-13
+            name: cibw-wheels-windows-latest
+            path: wheelhouse/.
+      - uses: actions/download-artifact@v4
+        with:
+            name: cibw-wheels-macos-14
             path: wheelhouse/.
 
       - name: Zip whls
