@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:  # IMPORTANT: macos-13 is an intel runner, macos-14 is apple silicon
-        os: [ubuntu-latest, macos-13] #ubuntu-latest] # macos-13]    # [ubuntu-latest, macos-13]#, windows-latest]
+        os: [windows-latest, ubuntu-latest, macos-14]    # [ubuntu-latest, macos-13]#, 
  
     steps:
     - uses: actions/checkout@v4
@@ -68,29 +68,35 @@ jobs:
       run: |
         if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
-        elif [[ "${{ matrix.os }}" == "macos-13" ]]; then
+        elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
           brew install boost gcc llvm libomp protobuf
-        elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
-          unzip boost_1_86_0.zip
+        # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+
         fi
       shell: bash
 
+    - name: Install Boost on Windows via vcpkg
+      if: matrix.os == 'windows-latest'
+      run: |
+        if (Test-Path 'C:\vcpkg') {
+          Remove-Item -Recurse -Force 'C:\vcpkg'
+        }
+  
+        git clone https://github.com/microsoft/vcpkg.git 'C:\vcpkg'
+        Set-Location 'C:\vcpkg'
+        .\bootstrap-vcpkg.bat
 
+        if (-Not (Test-Path 'C:\vcpkg\scripts\buildsystems\vcpkg.cmake')) {
+          Write-Host 'ERROR: vcpkg.cmake not found!'
+          exit 1
+        }
 
-   # - uses: astral-sh/setup-uv@v4
-   # - name: Update Submodules to Latest Commit
-   #   run: |
-   #     git submodule sync
-   #     git submodule update --init --recursive
-   #     git submodule update --recursive --remote 
-   #     git -C libs/quantanium fetch origin main
-   #     git -C libs/quantanium reset --hard origin/main  # Reset to latest commit
-          
-        # Verify the commit hash
-   #     echo "Updated libs/quantanium to commit:"
-   #     git -C libs/quantanium rev-parse HEAD
+        .\vcpkg.exe install protobuf:x64-windows
+        .\vcpkg.exe install boost-program-options:x64-windows
+        .\vcpkg.exe install boost-serialization:x64-windows
+        .\vcpkg.exe install boost-log:x64-windows
 
+      shell: pwsh
    
     - name: Check Submodule Commits 
       run: |
@@ -101,35 +107,25 @@ jobs:
     - uses: pypa/cibuildwheel@v2.22
       env:
         CIBW_ENABLE: cpython-prerelease
-        CIBW_SKIP: cp*-musllinux*
-        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-        CIBW_ARCHS_WINDOWS: x86 #auto ARM64
+        CIBW_SKIP: cp*-musllinux* cp*-win_arm64*
+        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313*-"
+        CIBW_BUILD_VERBOSITY: 3
+        CIBW_ARCHS_WINDOWS: AMD64 #auto ARM64
         CIBW_ARCHS_LINUX: x86_64 #"auto aarch64" #x86_64 # On an Linux Intel runner, build Intel and ARM wheels
-        CIBW_ARCHS_MACOS: x86_64 #arm64"   # x86_64 #universal2 
-        CIBW_PLATFORM_TAG_MACOS: "macosx_13_0"
-
+        CIBW_ARCHS_MACOS: arm64 #x86_64    # x86_64 #universal2 
+        CIBW_PLATFORM_TAG_MACOS: "macosx_14_0" #"macosx_13_0"
         
-        #CIBW_BUILD_VERBOSITY: 3
-        # 
-        # Installation for MacOS
-        # if [[ "${{ matrix.os }}" == "macos-13" ]]; then
-        # fi
-        CIBW_BEFORE_BUILD: |
-          # python -m pip install cmake
-        CIBW_BEFORE_ALL_WINDOWS: |
-          echo on
-          curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.zip
-          unzip boost_1_86_0.zip -d C:/Boost
-          set BOOST_ROOT=C:/Boost/boost_1_86_0
-          echo "Boost installed at %BOOST_ROOT%"
-          curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-win64.zip
-          unzip protoc-21.12-win64.zip -d C:/Protobuf
-          set PATH=C:/Protobuf/bin;%PATH%
-          protoc --version
-          echo "Protobuf installed and available in PATH"
-          echo "BOOST_ROOT=%BOOST_ROOT%"
-          echo "Protobuf installed at C:/Protobuf"
-          echo off
+
+
+        CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
+        CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
+
+
+        CIBW_ENVIRONMENT_WINDOWS: |
+          BOOST_ROOT=C:/vcpkg/installed/x64-windows
+          BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
+          BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
+
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
             set -x
@@ -139,15 +135,22 @@ jobs:
             brew uninstall protobuf
             brew install protobuf@3
             brew link --force protobuf@3
+            brew install boost
+            brew link --force boost
             brew list
             DETECTED_ARCH=$(uname -m)
             echo "Detected architecture: $DETECTED_ARCH"
-            export CXXFLAGS="-I$(brew --prefix protobuf)/include"
-            export LDFLAGS="-L$(brew --prefix protobuf)/lib"
+         
+            export BOOST_ROOT=$(brew --prefix boost)
+            export CXXFLAGS="-I$BOOST_ROOT/include -I$(brew --prefix protobuf)/include"
+            export LDFLAGS="-L$BOOST_ROOT/lib -L$(brew --prefix protobuf)/lib"
+            # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
+            # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
             echo "Protobuf installed at $(brew --prefix protobuf)"
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
             set +x
+            
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
           set -x
@@ -180,10 +183,9 @@ jobs:
           ls /usr/local/include/google/protobuf || echo "Protobuf headers not found"
           ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
           set +x
+
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_WINDOWS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}'
-   
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=13.0
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=14.0
 
 
     - name: Verify clean directory
