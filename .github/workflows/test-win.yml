@@ -12,5 +12,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
+      - run: choco install vcredist140 -y   
       - run: pip install quantanium
       - run: python -c "import quantanium; print('It works!')"
