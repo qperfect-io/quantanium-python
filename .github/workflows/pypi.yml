@@ -6,8 +6,8 @@ on:
 jobs:
 
   get-release:
-    if: github.repository == 'qperfect-io/quantanium-python'
     runs-on: ubuntu-latest
+    if: github.repository == 'qperfect-io/quantanium-python'
 
     steps:
       - uses: actions/checkout@v4
@@ -16,49 +16,61 @@ jobs:
         with:
           python-version: "3.x"
 
-          # Gets the whl directly from the created release
-      - uses: robinraju/release-downloader@v1
+      - name: Download quantanium_wheels.zip from release
+        uses: robinraju/release-downloader@v1
         with:
           latest: true
           fileName: 'quantanium_wheels.zip'
           out-file-path: 'release-dists'
 
-      - name: Upload distributions
+      - name: Upload ZIP for next job
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: dist-zip
           path: release-dists/quantanium_wheels.zip
 
   pypi-publish:
     needs: get-release
+    runs-on: windows-latest
     if: github.repository == 'qperfect-io/quantanium-python'
-    runs-on: ubuntu-latest
     permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
-
-    # Dedicated environments with protections for publishing are strongly recommended.
-    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
     environment:
       name: production
-      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
-      # url: https://pypi.org/project/YOURPROJECT
-      # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
-      # ALTERNATIVE: exactly, uncomment the following line instead:
-      # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
 
     steps:
-      - name: Retrieve release distributions
+      - name: Download ZIP artifact
         uses: actions/download-artifact@v4
         with:
-          name: dist
+          name: dist-zip
           path: dist/
 
-      - name: unzip Wheels
-        run: unzip dist/quantanium_wheels.zip -d dist/quantanium_wheels
+      - name: Extract wheels
+        run: |
+          mkdir dist\wheelhouse
+          powershell -Command "Expand-Archive -Path 'dist\\quantanium_wheels.zip' -DestinationPath 'dist\\wheelhouse'"
 
-      - name: Publish release distributions to PyPI
+      - name: Install Python + delvewheel
+        run: |
+          python -m pip install --upgrade pip
+          pip install delvewheel
+
+      - name: Repair Windows wheels with delvewheel
+        run: |
+          mkdir dist\repaired
+          for %F in (dist\wheelhouse\*win_amd64.whl) do (
+            delvewheel repair %F --add-path dist\wheelhouse --wheel-dir dist\repaired
+          )
+
+      - name: Copy non-Windows wheels
+        run: |
+          copy dist\wheelhouse\*.whl dist\repaired\
+          del dist\repaired\*win_amd64.whl
+          copy dist\wheelhouse\quantanium*win_amd64.whl dist\repaired\
+
+      - name: Publish all wheels to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/quantanium_wheels/wheelhouse/.
+          packages-dir: dist/repaired
           password: ${{ secrets.PYPI_API_TOKEN }}
+
