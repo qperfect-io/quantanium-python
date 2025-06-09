@@ -54,13 +54,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install delvewheel
-
       - name: Repair Windows wheels with delvewheel
         shell: cmd
         run: |
           mkdir dist\repaired
-          for %F in (dist\wheelhouse\*win_amd64.whl) do (
-            delvewheel repair %F --add-path dist\wheelhouse --wheel-dir dist\repaired
+          for %%F in (dist\wheelhouse\*win_amd64.whl) do (
+            delvewheel repair %%F --add-path dist\wheelhouse --wheel-dir dist\repaired
           )
       - name: Copy non-Windows wheels
         run: |
