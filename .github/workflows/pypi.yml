@@ -5,6 +5,7 @@ on:
 
 jobs:
 
+  # Download release artifact from GitHub Releases
   get-release:
     runs-on: ubuntu-latest
     if: github.repository == 'qperfect-io/quantanium-python'
@@ -23,15 +24,19 @@ jobs:
           fileName: 'quantanium_wheels.zip'
           out-file-path: 'release-dists'
 
-      - name: Upload ZIP for next jobs
+      - name: Upload ZIP for next job
         uses: actions/upload-artifact@v4
         with:
           name: dist-zip
           path: release-dists/quantanium_wheels.zip
 
+
+  # Repair Windows wheels with delvewheel
   repair-windows-wheels:
-    needs: get-release
     runs-on: windows-latest
+    needs: get-release
+    if: github.repository == 'qperfect-io/quantanium-python'
+
     steps:
       - name: Download ZIP artifact
         uses: actions/download-artifact@v4
@@ -63,39 +68,42 @@ jobs:
           name: dist-repaired-win
           path: dist/repaired/*.whl
 
+
+  # Publish all wheels (macOS + Linux + repaired Windows)
   pypi-publish:
-    needs: [get-release, repair-windows-wheels]
     runs-on: ubuntu-latest
+    needs: [get-release, repair-windows-wheels]
     if: github.repository == 'qperfect-io/quantanium-python'
     permissions:
       id-token: write
     environment:
       name: production
-    steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
 
-      - name: Download original ZIP
+    steps:
+      - name: Download repaired Windows wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-repaired-win
+          path: dist/final/
+
+      - name: Download original macOS/Linux wheels
         uses: actions/download-artifact@v4
         with:
           name: dist-zip
           path: dist/
 
-      - name: Unzip original wheels
+      - name: Extract non-Windows wheels
         run: |
-          mkdir dist/wheelhouse
-          unzip dist/quantanium_wheels.zip -d dist/wheelhouse
+          mkdir -p dist/final
+          unzip dist/quantanium_wheels.zip -d dist/tmp
+          find dist/tmp/wheelhouse -type f -name '*.whl' ! -name '*win_amd64.whl' -exec cp {} dist/final/ \;
 
-      - name: Download repaired Windows wheels
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-repaired-win
-          path: dist/wheelhouse/
+      - name: List all final wheels
+        run: ls -lh dist/final
 
       - name: Publish all wheels to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/wheelhouse
+          packages-dir: dist/final
           password: ${{ secrets.PYPI_API_TOKEN }}
 
