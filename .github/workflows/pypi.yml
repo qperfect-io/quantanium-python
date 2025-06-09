@@ -73,6 +73,8 @@ jobs:
 
 
   # Publish all wheels (macOS + Linux + repaired Windows)
+
+
   pypi-publish:
     runs-on: ubuntu-latest
     needs: [get-release, repair-windows-wheels]
@@ -95,16 +97,10 @@ jobs:
           name: dist-zip
           path: dist/
 
-      - name: Debug: list contents of dist/
-        run: ls -lh dist
-
-      - name: Unzip quantanium_wheels.zip
-        run: |
-          unzip dist/quantanium_wheels.zip -d dist/tmp
-
-      - name: Copy non-Windows wheels
+      - name: Extract non-Windows wheels
         run: |
           mkdir -p dist/final
+          unzip dist/quantanium_wheels.zip -d dist/tmp
           find dist/tmp/wheelhouse -type f -name '*.whl' ! -name '*win_amd64.whl' -exec cp {} dist/final/ \;
 
       - name: List all final wheels
@@ -115,5 +111,4 @@ jobs:
         with:
           packages-dir: dist/final
           password: ${{ secrets.PYPI_API_TOKEN }}
-
 
