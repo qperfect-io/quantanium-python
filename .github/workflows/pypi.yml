@@ -44,10 +44,10 @@ jobs:
           name: dist-zip
           path: dist/
 
+
       - name: Extract wheels
         run: |
-          mkdir dist\wheelhouse
-          powershell -Command "Expand-Archive -Path 'dist\\quantanium_wheels.zip' -DestinationPath 'dist\\wheelhouse'"
+          powershell -Command "Expand-Archive -Path 'dist\\quantanium_wheels.zip' -DestinationPath 'dist'"
 
       - name: Install Python + delvewheel
         run: |
