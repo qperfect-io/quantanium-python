@@ -17,4 +17,4 @@ jobs:
       - run: pip install msvc-runtime
       - run: pip install quantanium
       - run: pip show quantanium
-      - run: python -c "import quantanium; print('It works!')"
+      - run: python -c "import pywintypes; import quantanium; print('It works!')"
