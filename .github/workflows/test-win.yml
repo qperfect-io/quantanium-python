@@ -14,5 +14,6 @@ jobs:
           python-version: '3.11'
       
       - run: choco install vcredist140 -y   
+      - run: pip install msvc-runtime
       - run: pip install quantanium
       - run: python -c "import quantanium; print('It works!')"
