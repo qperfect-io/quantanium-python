@@ -57,12 +57,22 @@ jobs:
         shell: cmd
         run: |
           dir dist\wheelhouse
+      # - name: Repair Windows wheels with delvewheel
+      #   shell: cmd
+      #   run: |
+      #     mkdir dist\repaired
+      #     for %%F in (dist\wheelhouse\*win_amd64.whl) do (
+      #       delvewheel repair %%F --add-path dist\wheelhouse --wheel-dir dist\repaired
+      #     )
       - name: Repair Windows wheels with delvewheel
         shell: cmd
         run: |
+          mkdir dist\dlls
+          xcopy /Y /S "C:\vcpkg\installed\x64-windows\bin\*.dll" dist\dlls\
+
           mkdir dist\repaired
           for %%F in (dist\wheelhouse\*win_amd64.whl) do (
-            delvewheel repair %%F --add-path dist\wheelhouse --wheel-dir dist\repaired
+            delvewheel repair %%F --add-path dist\dlls --wheel-dir dist\repaired
           )
 
       - name: Upload repaired wheels
