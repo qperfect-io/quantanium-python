@@ -17,7 +17,7 @@ jobs:
       - run: pip install msvc-runtime
       - run: pip install quantanium
       - run: pip show quantanium
-      - run  python -c "import os,importlib.util;
+      - run:  python -c "import os,importlib.util;
               spec = importlib.util.find_spec('quantanium');
               pkg_dir = os.path.dirname(spec.origin);
               dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, 'quantanium.libs'));
