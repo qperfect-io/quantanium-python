@@ -9,7 +9,13 @@ import tempfile
 import platform
 
 if platform.system() == "Windows":
-    os.add_dll_directory("..\\quantanium.libs")
+    package_dir = os.path.dirname(__file__)  
+    dll_dir = os.path.abspath(
+        os.path.join(package_dir, os.pardir, "quantanium.libs")
+    )
+    if not os.path.isdir(dll_dir):
+        raise FileNotFoundError(f"quantanium.libs not found at {dll_dir!r}")
+    os.add_dll_directory(dll_dir)
 from ._core import (
     Circuit,
     ProtoParser,
