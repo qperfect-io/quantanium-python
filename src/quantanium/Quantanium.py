@@ -6,7 +6,10 @@
 import os
 import time
 import tempfile
+import platform
 
+if platform.system() == "Windows":
+    os.add_dll_directory(quantanium.libs)
 from ._core import (
     Circuit,
     ProtoParser,
