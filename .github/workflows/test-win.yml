@@ -18,36 +18,34 @@ jobs:
 
 
       - name: Scan quantanium.libs for missing dependencies
-        shell: bash
+        shell: powershell
         run: |
-          python - << 'PYCODE'
-          import os, importlib.util, ctypes, sys
+          $script = @'
+      import os, importlib.util, ctypes, sys
 
-          # locate the folder
-          spec = importlib.util.find_spec("quantanium")
-          if spec is None:
-              print("quantanium not found in this environment.", file=sys.stderr)
-              sys.exit(1)
+      spec = importlib.util.find_spec("quantanium")
+      pkg_dir = os.path.dirname(spec.origin)
+      dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
 
-          pkg_dir = os.path.dirname(spec.origin)
-          dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
-          print("→ Scanning DLLs in:", dll_dir, "\n")
+      print("→ Scanning DLLs in:", dll_dir, "\n")
+      if not os.path.isdir(dll_dir):
+          print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
+          sys.exit(1)
 
-          if not os.path.isdir(dll_dir):
-              print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
-              sys.exit(1)
+      for fn in sorted(os.listdir(dll_dir)):
+          if not fn.lower().endswith(".dll"):
+              continue
+          path = os.path.join(dll_dir, fn)
+          try:
+              ctypes.WinDLL(path)
+              print(f"{fn} loaded successfully")
+          except Exception as e:
+              print(f"{fn} failed: {e}")
+      '@
 
-          for fn in sorted(os.listdir(dll_dir)):
-              if not fn.lower().endswith(".dll"):
-                  continue
-              path = os.path.join(dll_dir, fn)
-              try:
-                  ctypes.WinDLL(path)
-                  print(f"{fn} loaded successfully")
-              except Exception as e:
-                  print(f"{fn} failed: {e}")
+          # pipe the Python script into stdin
+          $script | python -
 
-          PYCODE
 
 
       - run: python -c "import quantanium; print('It works!')"
