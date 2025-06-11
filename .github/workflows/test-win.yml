@@ -3,19 +3,73 @@ name: Test on Windows
 on:
   workflow_dispatch:
 
-
 jobs:
   windows-test:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
-      # - run: choco install vcredist140 -y   
-      # - run: pip install msvc-runtime
+
       - run: pip install quantanium
       - run: pip show quantanium
-      #- run: python -c "import os,importlib.util; spec=importlib.util.find_spec('quantanium'); pkg_dir=os.path.dirname(spec.origin); dll_dir=os.path.abspath(os.path.join(pkg_dir, os.pardir, 'quantanium.libs')); assert os.path.isdir(dll_dir), f'quantanium.libs not found at {dll_dir!r}'; os.add_dll_directory(dll_dir); import quantanium; print('It works!')"
+
+
+      - name: Scan quantanium.libs for missing dependencies
+        shell: bash
+        run: |
+          python - << 'PYCODE'
+          import os, importlib.util, ctypes, sys
+
+          # locate the folder
+          spec = importlib.util.find_spec("quantanium")
+          if spec is None:
+              print("quantanium not found in this environment.", file=sys.stderr)
+              sys.exit(1)
+
+          pkg_dir = os.path.dirname(spec.origin)
+          dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
+          print("→ Scanning DLLs in:", dll_dir, "\n")
+
+          if not os.path.isdir(dll_dir):
+              print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
+              sys.exit(1)
+
+          for fn in sorted(os.listdir(dll_dir)):
+              if not fn.lower().endswith(".dll"):
+                  continue
+              path = os.path.join(dll_dir, fn)
+              try:
+                  ctypes.WinDLL(path)
+                  print(f"{fn} loaded successfully")
+              except Exception as e:
+                  print(f"{fn} failed: {e}")
+
+          PYCODE
+
+
       - run: python -c "import quantanium; print('It works!')"
+
+# name: Test on Windows
+
+# on:
+#   workflow_dispatch:
+
+
+# jobs:
+#   windows-test:
+#     runs-on: windows-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.11'
+      
+#       # - run: choco install vcredist140 -y   
+#       # - run: pip install msvc-runtime
+#       - run: pip install quantanium
+#       - run: pip show quantanium
+#       #- run: python -c "import os,importlib.util; spec=importlib.util.find_spec('quantanium'); pkg_dir=os.path.dirname(spec.origin); dll_dir=os.path.abspath(os.path.join(pkg_dir, os.pardir, 'quantanium.libs')); assert os.path.isdir(dll_dir), f'quantanium.libs not found at {dll_dir!r}'; os.add_dll_directory(dll_dir); import quantanium; print('It works!')"
+#       - run: python -c "import quantanium; print('It works!')"
