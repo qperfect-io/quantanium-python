@@ -17,62 +17,75 @@ jobs:
       - run: pip show quantanium
 
 
-      - name: Scan quantanium.libs for missing dependencies
+      # - name: Scan quantanium.libs for missing dependencies
+      #   shell: powershell
+      #   run: |
+      #     $script = @'
+      #     import os, importlib.util, ctypes, sys
+
+      #     spec = importlib.util.find_spec("quantanium")
+      #     pkg_dir = os.path.dirname(spec.origin)
+      #     dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
+
+      #     print("Scanning DLLs in:", dll_dir, "\n")
+      #     if not os.path.isdir(dll_dir):
+      #         print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
+      #         sys.exit(1)
+
+      #     for fn in sorted(os.listdir(dll_dir)):
+      #         if not fn.lower().endswith(".dll"):
+      #             continue
+      #         path = os.path.join(dll_dir, fn)
+      #         try:
+      #             ctypes.WinDLL(path)
+      #             print(f"{fn} loaded successfully")
+      #         except Exception as e:
+      #             print(f"{fn} failed: {e}")
+      #     '@
+
+      #         # pipe the Python script into stdin
+      #         $script | python -
+
+      - name: Scan quantanium.libs for missing imports
         shell: powershell
         run: |
-
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          if (-Not (Test-Path $vswhere)) {
-            Write-Error "vswhere.exe not found at $vswhere"
-            exit 1
-          }
-
-          $installationPath = & $vswhere -latest -products * `
-            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-            -property installationPath
-          if (-Not $installationPath) {
-            Write-Error "No Visual Studio installation with VC tools found"
-            exit 1
-          }
-
-          & "$installationPath\VC\Auxiliary\Build\vcvars64.bat" x64 | Out-Null
+          pip install --upgrade pefile
 
           $script = @'
-          import os, importlib.util, ctypes, sys, subprocess
+import os, importlib.util, sys
+import pefile
 
+# locate quantanium.libs
+spec = importlib.util.find_spec("quantanium")
+pkg_dir = os.path.dirname(spec.origin)
+dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
 
-          spec = importlib.util.find_spec("quantanium")
-          pkg_dir = os.path.dirname(spec.origin)
-          dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
+print("Scanning DLLs in:", dll_dir, "\n")
+if not os.path.isdir(dll_dir):
+    print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
+    sys.exit(1)
 
-          print("Scanning DLLs in:", dll_dir, "\n")
-          if not os.path.isdir(dll_dir):
-              print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
-              sys.exit(1)
+for fn in sorted(os.listdir(dll_dir)):
+    if not fn.lower().endswith(".dll"):
+        continue
+    path = os.path.join(dll_dir, fn)
+    print(f"--- {fn} ---")
+    try:
+        pe = pefile.PE(path, fast_load=True)
+        pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_IMPORT"]])
+        imports = sorted({entry.dll.decode('utf-8', errors='ignore') for entry in pe.DIRECTORY_ENTRY_IMPORT})
+        print("Imports:", imports)
+    except Exception as e:
+        print("Failed to parse with pefile:", e)
+    print()
+'@
 
-          for fn in sorted(os.listdir(dll_dir)):
-              if not fn.lower().endswith(".dll"):
-                  continue
-              path = os.path.join(dll_dir, fn)
-
-              try:
-                  ctypes.WinDLL(path)
-                  print(f"{fn} loaded successfully")
-              except Exception as e:
-                  print(f"{fn} failed to load: {e}")
-
-              print(f"\n=== dumpbin /DEPENDENTS for {fn} ===")
-              subprocess.run(
-                  ["dumpbin", "/DEPENDENTS", path],
-                  check=False
-              )
-              print("\n" + "-"*60 + "\n")
-          '@
-
-          # invoke the Python scanner
+          # pipe the Python script into stdin
           $script | python -
 
+
       - run: python -c "import quantanium; print('It works!')"
+
 # name: Test on Windows
 
 # on:
