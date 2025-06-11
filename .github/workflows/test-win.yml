@@ -21,30 +21,30 @@ jobs:
         shell: powershell
         run: |
           $script = @'
-      import os, importlib.util, ctypes, sys
+          import os, importlib.util, ctypes, sys
 
-      spec = importlib.util.find_spec("quantanium")
-      pkg_dir = os.path.dirname(spec.origin)
-      dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
+          spec = importlib.util.find_spec("quantanium")
+          pkg_dir = os.path.dirname(spec.origin)
+          dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
 
-      print("→ Scanning DLLs in:", dll_dir, "\n")
-      if not os.path.isdir(dll_dir):
-          print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
-          sys.exit(1)
+          print("→ Scanning DLLs in:", dll_dir, "\n")
+          if not os.path.isdir(dll_dir):
+              print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
+              sys.exit(1)
 
-      for fn in sorted(os.listdir(dll_dir)):
-          if not fn.lower().endswith(".dll"):
-              continue
-          path = os.path.join(dll_dir, fn)
-          try:
-              ctypes.WinDLL(path)
-              print(f"{fn} loaded successfully")
-          except Exception as e:
-              print(f"{fn} failed: {e}")
-      '@
+          for fn in sorted(os.listdir(dll_dir)):
+              if not fn.lower().endswith(".dll"):
+                  continue
+              path = os.path.join(dll_dir, fn)
+              try:
+                  ctypes.WinDLL(path)
+                  print(f"{fn} loaded successfully")
+              except Exception as e:
+                  print(f"{fn} failed: {e}")
+          '@
 
-          # pipe the Python script into stdin
-          $script | python -
+              # pipe the Python script into stdin
+              $script | python -
 
 
 
