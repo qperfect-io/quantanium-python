@@ -18,51 +18,57 @@ jobs:
 
 
       - name: Scan quantanium.libs for missing dependencies
-        shell: powershell
-        run: |
- 
-          if (-Not $env:VSINSTALLDIR) {
-            Write-Error "VSINSTALLDIR is not set; cannot locate vcvars64.bat"
-            exit 1
-          }
-          & "$env:VSINSTALLDIR\VC\Auxiliary\Build\vcvars64.bat" x64 | Out-Null
+          shell: powershell
+          run: |
+            $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+            if (-Not (Test-Path $vswhere)) {
+              Write-Error "vswhere.exe not found at $vswhere"
+              exit 1
+            }
 
-          $script = @'
-          import os, importlib.util, ctypes, sys, subprocess
+            $installationPath = & $vswhere -latest -products * `
+              -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+              -property installationPath
+            if (-Not $installationPath) {
+              Write-Error "No Visual Studio installation with VC tools found"
+              exit 1
+            }
 
+            & "$installationPath\VC\Auxiliary\Build\vcvars64.bat" x64 | Out-Null
 
-          spec = importlib.util.find_spec("quantanium")
-          pkg_dir = os.path.dirname(spec.origin)
-          dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
-
-          print("Scanning DLLs in:", dll_dir, "\n")
-          if not os.path.isdir(dll_dir):
-              print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
-              sys.exit(1)
-
-          for fn in sorted(os.listdir(dll_dir)):
-              if not fn.lower().endswith(".dll"):
-                  continue
-              path = os.path.join(dll_dir, fn)
-
-   
-              try:
-                  ctypes.WinDLL(path)
-                  print(f"{fn} loaded successfully")
-              except Exception as e:
-                  print(f"{fn} failed to load: {e}")
+            $script = @'
+            import os, importlib.util, ctypes, sys, subprocess
 
 
-              print(f"\n=== dumpbin /DEPENDENTS for {fn} ===")
-              subprocess.run(
-                  ["dumpbin", "/DEPENDENTS", path],
-                  check=False
-              )
-              print("\n" + "-"*60 + "\n")
-          '@
+            spec = importlib.util.find_spec("quantanium")
+            pkg_dir = os.path.dirname(spec.origin)
+            dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
 
+            print("Scanning DLLs in:", dll_dir, "\n")
+            if not os.path.isdir(dll_dir):
+                print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
+                sys.exit(1)
 
-          $script | python -
+            for fn in sorted(os.listdir(dll_dir)):
+                if not fn.lower().endswith(".dll"):
+                    continue
+                path = os.path.join(dll_dir, fn)
+
+                try:
+                    ctypes.WinDLL(path)
+                    print(f"{fn} loaded successfully")
+                except Exception as e:
+                    print(f"{fn} failed to load: {e}")
+
+                print(f"\n=== dumpbin /DEPENDENTS for {fn} ===")
+                subprocess.run(
+                    ["dumpbin", "/DEPENDENTS", path],
+                    check=False
+                )
+                print("\n" + "-"*60 + "\n")
+            '@
+
+            $script | python -
 
       - run: python -c "import quantanium; print('It works!')"
 
