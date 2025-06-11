@@ -83,5 +83,10 @@ target_link_libraries(_core
     quantanium::quantanium
     quantanium::proto
 )
-
+if(WIN32)
+    install(TARGETS quantanium::quantanium quantanium::proto
+    RUNTIME   DESTINATION quantanium.libs
+    LIBRARY   DESTINATION quantanium.libs
+    ARCHIVE   DESTINATION quantanium.libs)
+endif()
 install(TARGETS _core DESTINATION quantanium)
