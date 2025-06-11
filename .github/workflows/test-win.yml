@@ -21,7 +21,7 @@ jobs:
         shell: powershell
         run: |
           $script = @'
-          import os, importlib.util, ctypes, sys
+          import os, importlib.util, ctypes, sys, subprocess
 
           spec = importlib.util.find_spec("quantanium")
           pkg_dir = os.path.dirname(spec.origin)
@@ -36,19 +36,26 @@ jobs:
               if not fn.lower().endswith(".dll"):
                   continue
               path = os.path.join(dll_dir, fn)
+
               try:
                   ctypes.WinDLL(path)
                   print(f"{fn} loaded successfully")
               except Exception as e:
-                  print(f"{fn} failed: {e}")
+                  print(f"{fn} failed to load: {e}")
+
+              print(f"\n=== dumpbin /DEPENDENTS for {fn} ===")
+              subprocess.run(
+                  ["dumpbin", "/DEPENDENTS", path],
+                  check=False
+              )
+              print("\n" + "-"*60 + "\n")
           '@
 
-              # pipe the Python script into stdin
-              $script | python -
 
-
+          $script | python -
 
       - run: python -c "import quantanium; print('It works!')"
+
 
 # name: Test on Windows
 
