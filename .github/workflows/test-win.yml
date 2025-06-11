@@ -20,8 +20,16 @@ jobs:
       - name: Scan quantanium.libs for missing dependencies
         shell: powershell
         run: |
+ 
+          if (-Not $env:VSINSTALLDIR) {
+            Write-Error "VSINSTALLDIR is not set; cannot locate vcvars64.bat"
+            exit 1
+          }
+          & "$env:VSINSTALLDIR\VC\Auxiliary\Build\vcvars64.bat" x64 | Out-Null
+
           $script = @'
           import os, importlib.util, ctypes, sys, subprocess
+
 
           spec = importlib.util.find_spec("quantanium")
           pkg_dir = os.path.dirname(spec.origin)
@@ -37,11 +45,13 @@ jobs:
                   continue
               path = os.path.join(dll_dir, fn)
 
+   
               try:
                   ctypes.WinDLL(path)
                   print(f"{fn} loaded successfully")
               except Exception as e:
                   print(f"{fn} failed to load: {e}")
+
 
               print(f"\n=== dumpbin /DEPENDENTS for {fn} ===")
               subprocess.run(
