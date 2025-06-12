@@ -25,19 +25,39 @@ jobs:
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
-        # I did both os manually sorry
-      - uses: actions/download-artifact@v4
-        with:
-            name: cibw-wheels-ubuntu-latest
-            path: wheelhouse/.
-      - uses: actions/download-artifact@v4
-        with:
-            name: cibw-wheels-windows-latest
-            path: wheelhouse/.
-      - uses: actions/download-artifact@v4
-        with:
-            name: cibw-wheels-macos-14
-            path: wheelhouse/.
+    - uses: actions/download-artifact@v4
+      with:
+        name: cibw-wheels-ubuntu-latest-x86_64
+        path: wheelhouse/.
+    - uses: actions/download-artifact@v4
+      with:
+        name: cibw-wheels-windows-latest-AMD64
+        path: wheelhouse/.
+    - uses: actions/download-artifact@v4
+      with:
+        name: cibw-wheels-macos-13-x86_64
+        path: wheelhouse/.
+    - uses: actions/download-artifact@v4
+      with:
+        name: cibw-wheels-macos-13-arm64
+        path: wheelhouse/.
+    - uses: actions/download-artifact@v4
+      with:
+        name: cibw-wheels-macos-14-arm64
+        path: wheelhouse/.
+      # - uses: actions/download-artifact@v4
+      #   with:
+      #       name: cibw-wheels-ubuntu-latest
+      #       path: wheelhouse/.
+      # - uses: actions/download-artifact@v4
+      #   with:
+      #       name: cibw-wheels-macos-14
+      #       path: wheelhouse/.
+      # - uses: actions/download-artifact@v4
+      #   with:
+      #       name: cibw-wheels-windows-latest
+      #       path: wheelhouse/.
+
 
       - name: Zip whls
         run:  zip -r quantanium_wheels.zip wheelhouse/*
