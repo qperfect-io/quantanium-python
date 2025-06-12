@@ -1,4 +1,4 @@
-name: Test on macOS ARM64
+name: Test on macOS x86
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
 jobs:
   macos13-x86-test:
     name: Test on macOS 13 (x86_64)
-    runs-on: macos-13     # this runner is Intel, so uname -m → x86_64
+    runs-on: macos-13   
     steps:
       - uses: actions/checkout@v4
 
