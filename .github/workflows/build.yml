@@ -2,11 +2,6 @@ name: Wheels
 
 on:
   workflow_call:
-#on:
-#  push:
-#    branches:
-#      - main
-#      - devel
 
 env:
   FORCE_COLOR: 3
@@ -51,8 +46,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:  # IMPORTANT: macos-13 is an intel runner, macos-14 is apple silicon
-        os: [windows-latest, ubuntu-latest, macos-14]    # [ubuntu-latest, macos-13]#, 
+      matrix:
+        include:
+          - os: windows-latest
+            arch: AMD64
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: macos-13
+            arch: x86_64
+          - os: macos-13
+            arch: arm64
+          - os: macos-14
+            arch: arm64
+    #  matrix:  # IMPORTANT: macos-13 is an intel runner, macos-14 is apple silicon
+    #    os: [windows-latest, ubuntu-latest, macos-13, macos-14]    # [ubuntu-latest, macos-13]#, 
  
     steps:
     - uses: actions/checkout@v4
@@ -117,9 +124,11 @@ jobs:
         CIBW_BUILD_VERBOSITY: 3
         CIBW_ARCHS_WINDOWS: AMD64 #auto ARM64
         CIBW_ARCHS_LINUX: x86_64 #"auto aarch64" #x86_64 # On an Linux Intel runner, build Intel and ARM wheels
-        CIBW_ARCHS_MACOS: arm64 #x86_64    # x86_64 #universal2 
-        CIBW_PLATFORM_TAG_MACOS: "macosx_14_0" #"macosx_13_0"
-        
+        #CIBW_ARCHS_MACOS: arm64 #x86_64    # x86_64 #universal2 
+        #CIBW_PLATFORM_TAG_MACOS: "macosx_14_0" #"macosx_13_0"
+        CIBW_ARCHS_MACOS: ${{ matrix.arch }}
+        CIBW_PLATFORM_TAG_MACOS: ${{ matrix.os == 'macos-14' && 'macosx_14_0' || 'macosx_13_0' }}
+
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         #CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
