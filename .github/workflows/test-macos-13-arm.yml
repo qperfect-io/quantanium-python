@@ -6,7 +6,7 @@ on:
 jobs:
   macos13-arm64-test:
     name: Test on macOS 13 (ARM64)
-    runs-on: macos-13
+    runs-on: macos-13-xlarge
     steps:
       - uses: actions/checkout@v4
 
