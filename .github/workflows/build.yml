@@ -80,7 +80,7 @@ jobs:
       run: |
         if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
-        elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
+        elif [[ "${{ matrix.os }}" == "macos-*" ]]; then
           brew install boost gcc llvm libomp protobuf
         # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
 
@@ -128,6 +128,7 @@ jobs:
         #CIBW_PLATFORM_TAG_MACOS: "macosx_14_0" #"macosx_13_0"
         CIBW_ARCHS_MACOS: ${{ matrix.arch }}
         CIBW_PLATFORM_TAG_MACOS: ${{ matrix.os == 'macos-14' && 'macosx_14_0' || 'macosx_13_0' }}
+
 
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         #CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
@@ -201,7 +202,7 @@ jobs:
           set +x
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=14.0
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
 
 
     - name: Verify clean directory
