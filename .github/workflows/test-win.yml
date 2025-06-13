@@ -85,6 +85,25 @@ jobs:
 
 
       - run: python -c "import quantanium; print('It works!')"
+      
+      - name: Run test example quantanium + mimiqcircuits
+        shell: pwsh
+        run: |
+          @"
+          from quantanium.Quantanium import Quantanium
+          from mimiqcircuits import Circuit as MimiqCircuit
+          from mimiqcircuits import *
+          processor = Quantanium()
+
+          mimiq_circuit = MimiqCircuit()
+          mimiq_circuit.push(GateH(), 0)                   
+          mimiq_circuit.push(GateCX(), 0, range(2, 4))      
+
+          results = processor.execute(mimiq_circuit, nsamples=100, seed=1)
+          print("Results:", results)
+          "@ | Out-File -FilePath example_test.py -Encoding utf8
+
+          python example_test.py
 
 # name: Test on Windows
 
