@@ -88,16 +88,21 @@ jobs:
       
       - name: Run test example quantanium + mimiqcircuits
         shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8   
         run: |
           @"
+          import sys
           from quantanium.Quantanium import Quantanium
           from mimiqcircuits import Circuit as MimiqCircuit
           from mimiqcircuits import *
-          processor = Quantanium()
 
+          sys.stdout.reconfigure(encoding='utf-8')
+
+          processor = Quantanium()
           mimiq_circuit = MimiqCircuit()
-          mimiq_circuit.push(GateH(), 0)                   
-          mimiq_circuit.push(GateCX(), 0, range(2, 4))      
+          mimiq_circuit.push(GateH(), 0)
+          mimiq_circuit.push(GateCX(), 0, range(2, 4))
 
           results = processor.execute(mimiq_circuit, nsamples=100, seed=1)
           print("Results:", results)
