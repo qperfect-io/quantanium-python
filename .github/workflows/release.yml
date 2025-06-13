@@ -39,7 +39,7 @@ jobs:
           path: wheelhouse/.
       - uses: actions/download-artifact@v4
         with:
-          name: cibw-wheels-macos-13-arm64
+          name: cibw-wheels-macos-13-xlarge-arm64
           path: wheelhouse/.
       - uses: actions/download-artifact@v4
         with:
