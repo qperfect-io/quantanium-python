@@ -313,16 +313,37 @@ class Quantanium:
         Raises:
             Exception: If there is an error in the conversion process.
         """
-        with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
-            try:
+        tmp_name = None
+        try:
+            with tempfile.NamedTemporaryFile(suffix='.pb', delete=False) as tmp:
                 pp = ProtoResult()
                 pp.save_proto(tmp.name, qua_results)
-                mimiq_results = QCSResults()
-                mimiq_results = mimiq_results.loadproto(tmp)
-            except Exception as e:
-                raise Exception(f"Error converting QCSResults to QCSResult: {e}")
+                tmp_name = tmp.name
+
+
+            mimiq_results = QCSResults()
+            mimiq_results = mimiq_results.loadproto(tmp_name)
+        except Exception as e:
+            raise Exception(f"Error converting QuantaniumQCSResults to Mimiq QCSResults: {e}")
+        finally:
+  
+            if tmp_name and os.path.exists(tmp_name):
+                try:
+                    os.remove(tmp_name)
+                except OSError:
+                    pass
 
         return mimiq_results
+        # with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
+        #     try:
+        #         pp = ProtoResult()
+        #         pp.save_proto(tmp.name, qua_results)
+        #         mimiq_results = QCSResults()
+        #         mimiq_results = mimiq_results.loadproto(tmp)
+        #     except Exception as e:
+        #         raise Exception(f"Error converting QCSResults to QCSResult: {e}")
+
+        # return mimiq_results
 
     def execute(
         self,
