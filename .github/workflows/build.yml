@@ -86,6 +86,11 @@ jobs:
 
         fi
       shell: bash
+    - name: Export macOS target ≥ 13.0
+            if: startsWith(matrix.os, 'macos-13') || matrix.os == 'macos-14'
+            run: |
+              echo "MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
+              echo "BOOST_ROOT=$(brew --prefix boost)"      >> $GITHUB_ENV
 
     - name: Install Boost on Windows via vcpkg
       if: matrix.os == 'windows-latest'
@@ -202,7 +207,7 @@ jobs:
           set +x
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
 
 
     - name: Verify clean directory
