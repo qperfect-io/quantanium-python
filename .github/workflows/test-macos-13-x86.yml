@@ -1,0 +1,20 @@
+name: Test on macOS x86
+
+on:
+  workflow_dispatch:
+
+jobs:
+  macos13-x86-test:
+    name: Test on macOS 13 (x86_64)
+    runs-on: macos-13   
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check macOS architecture
+        run: uname -m
+      - run: pip install quantanium
+      - run: pip show quantanium
+      - run: python3 -c "import quantanium; print('It works!')"
