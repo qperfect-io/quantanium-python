@@ -224,14 +224,6 @@ class Quantanium:
                     pass
 
         return qua_circuit
-        # with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
-        #     try:
-        #         self._decompose_mimiq(mimiq_circuit).saveproto(tmp)
-        #         tmp.flush()
-        #         qua_circuit = ProtoParser().load_proto(tmp.name)
-        #     except Exception as e:
-        #         raise Exception(f"Error converting mimiq::Circuit to Circuit: {e}")
-        # return qua_circuit
 
     def convert_qua_to_mimiq_circuit(self, qua_circuit: Circuit) -> MimiqCircuit:
         """
