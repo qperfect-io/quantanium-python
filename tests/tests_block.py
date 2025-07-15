@@ -3,7 +3,7 @@
 import unittest
 from collections import Counter
 from quantanium import Quantanium
-from mimiqcircuits import Circuit, Block, GateH, GateX, GateCX, Measure
+from mimiqcircuits import *
 
 
 class TestBlockEquivalence(unittest.TestCase):
@@ -16,23 +16,42 @@ class TestBlockEquivalence(unittest.TestCase):
     def _log_success(self, name):
         print(f"[PASSED] {name}")
 
-    def build_block_circuit(self):
+    def build_block_circuit_without_m(self):
         # Create a circuit using a Block
-        block = Block(3, 1, 0)
+        block = Block(3, 3, 0)
         block.push(GateH(), 1)
         block.push(GateCX(), 1, 2)
-        block.push(Measure(), 2, 0)
+   
 
         circuit = Circuit()
-        circuit.push(block, 3, 4, 5, 0)
+        circuit.push(block, 0, 1, 2, 0,1,2)
         return circuit
 
-    def build_flat_circuit(self):
+    def build_flat_circuit_without_m(self):
         # Create an equivalent circuit without using Block
         circuit = Circuit()
-        circuit.push(GateH(), 4)
-        circuit.push(GateCX(), 4, 5)
-        circuit.push(Measure(), 5, 0)
+        circuit.push(GateH(), 1)
+        circuit.push(GateCX(), 1, 2)
+
+        return circuit
+
+    def build_block_circuit_with_m(self):
+        # Create a circuit using a Block
+        block = Block(3, 3, 0)
+        block.push(GateH(), 1)
+        block.push(GateCX(), 1, 2)
+        block.push(Measure(), 2, 2)
+
+        circuit = Circuit()
+        circuit.push(block, 0, 1, 2, 0, 1, 2)
+        return circuit
+
+    def build_flat_circuit_with_m(self):
+        # Create an equivalent circuit without using Block
+        circuit = Circuit()
+        circuit.push(GateH(), 1)
+        circuit.push(GateCX(), 1, 2)
+        circuit.push(Measure(), 2, 2)
         return circuit
 
     def get_distribution(self, cstates):
@@ -45,11 +64,11 @@ class TestBlockEquivalence(unittest.TestCase):
         keys = set(dist1) | set(dist2)
         return sum(abs(dist1.get(k, 0) - dist2.get(k, 0)) for k in keys) / 2
 
-    def test_block_vs_flat_distribution(self):
+    def test_block_vs_flat_distribution_without_m(self):
         # Compare Block-based and flat circuit output distributions
-        result_block = self.processor.execute(self.build_block_circuit(), nsamples=self.nsamples, seed=self.seed)
-        result_flat = self.processor.execute(self.build_flat_circuit(), nsamples=self.nsamples, seed=self.seed)
-
+        result_block = self.processor.execute(self.build_block_circuit_without_m(), nsamples=self.nsamples, seed=self.seed)
+        result_flat = self.processor.execute(self.build_flat_circuit_without_m(), nsamples=self.nsamples, seed=self.seed)
+        
         dist_block = self.get_distribution(result_block.cstates)
         dist_flat = self.get_distribution(result_flat.cstates)
         tvd = self.total_variation_distance(dist_block, dist_flat)
@@ -60,6 +79,22 @@ class TestBlockEquivalence(unittest.TestCase):
             f"TVD too large: {tvd:.4f} (Block vs Flat circuit)"
         )
         self._log_success("Test Block vs Flat Distribution")
+
+    
+    def test_block_vs_flat_distribution_with_m(self):
+        # Compare Block-based and flat circuit output distributions
+        result_block = self.processor.execute(self.build_block_circuit_with_m(), nsamples=self.nsamples, seed=self.seed)
+        result_flat = self.processor.execute(self.build_flat_circuit_with_m(), nsamples=self.nsamples, seed=self.seed)
+        dist_block = self.get_distribution(result_block.cstates)
+        dist_flat = self.get_distribution(result_flat.cstates)
+        tvd = self.total_variation_distance(dist_block, dist_flat)
+
+        self.assertLessEqual(
+            tvd,
+            self.tolerance,
+            f"TVD too large: {tvd:.4f} (Block vs Flat circuit)"
+        )
+        self._log_success("Test Block vs Flat Distribution with Measure")
 
     def test_simple_block_roundtrip_proto_conversion(self):
         # Create a simple Block and push it into a circuit
@@ -94,7 +129,7 @@ class TestBlockEquivalence(unittest.TestCase):
     def test_nested_block_roundtrip_proto_conversion(self):
         # Create a nested Block structure
         inner = Block(1, 0, 0)
-        inner.push(GateCX(), 0)
+        inner.push(GateX(), 0)
 
         outer = Block(2, 0, 0)
         outer.push(GateH(), 1)
