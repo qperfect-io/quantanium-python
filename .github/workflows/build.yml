@@ -81,7 +81,7 @@ jobs:
         if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
         elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
-          brew install boost gcc llvm libomp protobuf
+          brew install boost gcc llvm libomp
         # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
 
         fi
@@ -185,6 +185,7 @@ jobs:
           make -j2
           make install
           cd ../..
+          echo "PROTOBUF_ROOT=$HOME/protobuf3" >> "$GITHUB_OUTPUT"
           
           # Set environment variables for CMake and compiler
           export BOOST_ROOT=$(brew --prefix boost)
@@ -237,11 +238,15 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}
           MACOSX_DEPLOYMENT_TARGET=14.0
-          PROTOBUF_ROOT=$HOME/protobuf3
-          CMAKE_ARGS="-DProtobuf_ROOT=$HOME/protobuf3 -DCMAKE_PREFIX_PATH=$HOME/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc"
-          CXXFLAGS="-I$BOOST_ROOT/include -I$HOME/protobuf3/include"
-          LDFLAGS="-L$BOOST_ROOT/lib -L$HOME/protobuf3/lib"
-          PATH=$HOME/protobuf3/bin:$PATH
+          PROTOBUF_ROOT=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}
+          CMAKE_PREFIX_PATH=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}
+          CMAKE_INCLUDE_PATH=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/include
+          CMAKE_LIBRARY_PATH=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/lib
+          Protobuf_ROOT=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}
+          Protobuf_PROTOC_EXECUTABLE=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/bin/protoc
+          CXXFLAGS="-I${{ steps.install-boost.outputs.BOOST_ROOT }}/include -I${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/include"
+          LDFLAGS="-L${{ steps.install-boost.outputs.BOOST_ROOT }}/lib -L${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/lib"
+          PATH=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/bin:$PATH
 
 
 
