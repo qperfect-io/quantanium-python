@@ -234,7 +234,19 @@ jobs:
           set +x
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=14.0
+        CIBW_ENVIRONMENT_MACOS: |
+          BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}
+          MACOSX_DEPLOYMENT_TARGET=14.0
+          PROTOBUF_ROOT=$HOME/protobuf3
+          Protobuf_ROOT=$HOME/protobuf3
+          CMAKE_PREFIX_PATH=$HOME/protobuf3
+          CMAKE_INCLUDE_PATH=$HOME/protobuf3/include
+          CMAKE_LIBRARY_PATH=$HOME/protobuf3/lib
+          Protobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc
+          CXXFLAGS="-I$BOOST_ROOT/include -I$HOME/protobuf3/include"
+          LDFLAGS="-L$BOOST_ROOT/lib -L$HOME/protobuf3/lib"
+          PATH=$HOME/protobuf3/bin:$PATH
+
 
 
     - name: Verify clean directory
