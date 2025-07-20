@@ -54,7 +54,7 @@ jobs:
             arch: x86_64
           - os: macos-13
             arch: x86_64
-          - os: macos-13-xlarge
+          - os: macos-13
             arch: arm64
           - os: macos-14
             arch: arm64
@@ -80,18 +80,12 @@ jobs:
       run: |
         if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
-        elif [[ "${{ matrix.os }}" == "macos-*" ]]; then
+        elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
           brew install boost gcc llvm libomp protobuf
         # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
 
         fi
       shell: bash
-
-    # - name: Export macOS target >= 13.0
-    #   if: startsWith(matrix.os, 'macos-13') || matrix.os == 'macos-14'
-    #   run: |
-    #     echo "MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
-    #     echo "BOOST_ROOT=$(brew --prefix boost)"      >> $GITHUB_ENV
 
     - name: Install Boost on Windows via vcpkg
       if: matrix.os == 'windows-latest'
@@ -135,9 +129,6 @@ jobs:
         CIBW_ARCHS_MACOS: ${{ matrix.arch }}
         CIBW_PLATFORM_TAG_MACOS: ${{ matrix.os == 'macos-14' && 'macosx_14_0' || 'macosx_13_0' }}
 
-
-
-
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         #CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
@@ -151,31 +142,64 @@ jobs:
           BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
           BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
 
-        CIBW_BEFORE_ALL_MACOS: |
-            # OpenMP dependencies for MacOS
-            set -x
-            echo "---------------------DEBUG------------------------------"
-            brew update
-            brew install gcc llvm libomp 
-            brew uninstall protobuf
-            brew install protobuf@3
-            brew link --force protobuf@3
-            brew install boost
-            brew link --force boost
-            brew list
-            DETECTED_ARCH=$(uname -m)
-            echo "Detected architecture: $DETECTED_ARCH"
+        # CIBW_BEFORE_ALL_MACOS: |
+        #     # OpenMP dependencies for MacOS
+        #     set -x
+        #     echo "---------------------DEBUG------------------------------"
+        #     brew update
+        #     brew install gcc llvm libomp 
+        #     brew uninstall protobuf
+        #     brew install protobuf@3
+        #     brew link --force protobuf@3
+        #     brew install boost
+        #     brew link --force boost
+        #     brew list
+        #     DETECTED_ARCH=$(uname -m)
+        #     echo "Detected architecture: $DETECTED_ARCH"
          
-            export BOOST_ROOT=$(brew --prefix boost)
-            export CXXFLAGS="-I$BOOST_ROOT/include -I$(brew --prefix protobuf)/include"
-            export LDFLAGS="-L$BOOST_ROOT/lib -L$(brew --prefix protobuf)/lib"
-            # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
-            # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
-            echo "Protobuf installed at $(brew --prefix protobuf)"
-            protoc --version
-            echo "--------------------END DEBUG --------------------------"	
-            set +x
-            
+        #     export BOOST_ROOT=$(brew --prefix boost)
+        #     export CXXFLAGS="-I$BOOST_ROOT/include -I$(brew --prefix protobuf)/include"
+        #     export LDFLAGS="-L$BOOST_ROOT/lib -L$(brew --prefix protobuf)/lib"
+        #     # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
+        #     # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
+        #     echo "Protobuf installed at $(brew --prefix protobuf)"
+        #     protoc --version
+        #     echo "--------------------END DEBUG --------------------------"	
+        #     set +x
+        
+        CIBW_BEFORE_ALL_MACOS: |
+          # OpenMP + Protobuf + Boost dependencies for macOS
+          set -x
+          echo "--------------------- DEBUG ------------------------------"
+
+          brew update
+          brew install gcc llvm libomp boost
+          brew link --force boost
+
+          # Install Protobuf v3.21.12 manually from source
+          git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
+          cd protobuf
+          git submodule update --init --recursive
+          mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/protobuf3
+          make -j2
+          make install
+          cd ../..
+          
+          # Set environment variables for CMake and compiler
+          export BOOST_ROOT=$(brew --prefix boost)
+          export PROTOBUF_ROOT=$HOME/protobuf3
+          export CXXFLAGS="-I$BOOST_ROOT/include -I$PROTOBUF_ROOT/include"
+          export LDFLAGS="-L$BOOST_ROOT/lib -L$PROTOBUF_ROOT/lib"
+
+          # Add protobuf binaries to PATH and verify installation
+          export PATH="$PROTOBUF_ROOT/bin:$PATH"
+          export LD_LIBRARY_PATH="$PROTOBUF_ROOT/lib:$LD_LIBRARY_PATH"
+          protoc --version || echo "Protobuf not found!"
+          
+          echo "--------------------- END DEBUG --------------------------"
+          set +x
+
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
           set -x
@@ -210,8 +234,8 @@ jobs:
           set +x
 
         CMAKE_CXX_STANDARD: 20
-        #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=14.0
+
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
@@ -225,3 +249,7 @@ jobs:
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
         path: wheelhouse/*.whl
+
+
+
+
