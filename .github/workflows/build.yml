@@ -176,12 +176,13 @@ jobs:
           # OpenMP + Protobuf + Boost dependencies for macOS
           set -x
           echo "--------------------- DEBUG ------------------------------"
-
+   
           brew update
           brew install gcc llvm libomp boost
           brew link --force boost
 
           # Install Protobuf v3.21.12 manually from source
+          brew uninstall protobuf
           git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
           cd protobuf
           git submodule update --init --recursive
@@ -189,8 +190,8 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/protobuf3
           make -j2
           make install
-          cd ../..
-          echo "PROTOBUF_ROOT=$HOME/protobuf3" >> "$GITHUB_OUTPUT"
+          echo "PROTOBUF_ROOT=$HOME/protobuf3" >> $GITHUB_ENV
+          echo "PROTOBUF_ROOT=$HOME/protobuf3" >> $GITHUB_OUTPUT
           
           # Set environment variables for CMake and compiler
           export BOOST_ROOT=$(brew --prefix boost)
