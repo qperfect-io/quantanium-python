@@ -21,3 +21,6 @@ jobs:
       - run: pip show quantanium
 
       - run: python3 -c "import quantanium; print('It works!')"
+
+      - run: pip install pytest
+      - run: pytest tests
