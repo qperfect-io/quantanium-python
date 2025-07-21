@@ -182,7 +182,7 @@ jobs:
           brew update
           brew install gcc llvm libomp boost
           brew link --force boost
-
+          
           # Install Protobuf v3.21.12 manually from source
           brew uninstall protobuf || true
           sudo rm -rf /opt/homebrew/include/google/protobuf || true
@@ -197,6 +197,7 @@ jobs:
           make install
           echo "PROTOBUF_ROOT=/Users/runner/protobuf3" >> $GITHUB_ENV
           echo "PROTOBUF_ROOT=/Users/runner/protobuf3" >> $GITHUB_OUTPUT
+          ls /Users/runner/protobuf3
           
           # Set environment variables for CMake and compiler
           export BOOST_ROOT=$(brew --prefix boost)
@@ -255,8 +256,8 @@ jobs:
           CMAKE_PREFIX_PATH=/Users/runner/protobuf3
           CMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include
           CMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib
-          CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf3/include"
-          LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf3/lib"
+          CXXFLAGS="-I/Users/runner/protobuf3/include"
+          LDFLAGS="-L/Users/runner/protobuf3/lib"
           PATH=/Users/runner/protobuf3/bin:$PATH
 
 
