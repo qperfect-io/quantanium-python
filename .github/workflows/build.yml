@@ -191,15 +191,15 @@ jobs:
 
           git submodule update --init --recursive
           mkdir build && cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/protobuf3
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf3
           make -j2
           make install
-          echo "PROTOBUF_ROOT=$HOME/protobuf3" >> $GITHUB_ENV
-          echo "PROTOBUF_ROOT=$HOME/protobuf3" >> $GITHUB_OUTPUT
+          echo "PROTOBUF_ROOT=/Users/runner/protobuf3" >> $GITHUB_ENV
+          echo "PROTOBUF_ROOT=/Users/runner/protobuf3" >> $GITHUB_OUTPUT
           
           # Set environment variables for CMake and compiler
           export BOOST_ROOT=$(brew --prefix boost)
-          export PROTOBUF_ROOT=$HOME/protobuf3
+          export PROTOBUF_ROOT=/Users/runner/protobuf3
           export CXXFLAGS="-I$BOOST_ROOT/include -I$PROTOBUF_ROOT/include"
           export LDFLAGS="-L$BOOST_ROOT/lib -L$PROTOBUF_ROOT/lib"
 
