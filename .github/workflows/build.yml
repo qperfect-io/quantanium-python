@@ -114,17 +114,7 @@ jobs:
       run: |
         echo "Submodule commits AFTER update:"
         git submodule status
- 
-    - name: Generate Protobuf Toolchain File (macOS only)
-      if: startsWith(matrix.os, 'macos')
-      run: |
-        cat <<EOF > $GITHUB_WORKSPACE/protobuf-toolchain-macos.cmake
-        set(Protobuf_ROOT "/Users/runner/protobuf3" CACHE PATH "")
-        set(CMAKE_PREFIX_PATH "/Users/runner/protobuf3" CACHE PATH "")
-        set(Protobuf_PROTOC_EXECUTABLE "/Users/runner/protobuf3/bin/protoc" CACHE FILEPATH "")
-        set(CMAKE_INCLUDE_PATH "/Users/runner/protobuf3/include" CACHE PATH "")
-        set(CMAKE_LIBRARY_PATH "/Users/runner/protobuf3/lib" CACHE PATH "")
-        EOF
+
         
     - uses: pypa/cibuildwheel@v2.22
       env:
@@ -151,7 +141,7 @@ jobs:
               startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc' || '' }}
 
         CMAKE_ARGS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' ||
-              startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc' || '' }}
+              startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc' || '' }}
 
 
         CIBW_ENVIRONMENT_WINDOWS: |
