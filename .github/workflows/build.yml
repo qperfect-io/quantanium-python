@@ -136,13 +136,12 @@ jobs:
         # CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
         # CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
 
-        CIBW_CMAKE_CONFIGURE_OPTIONS: >-
-          ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' ||
-              startsWith(matrix.os, 'macos') && format('-DProtobuf_ROOT={0} -DCMAKE_PREFIX_PATH={0} -DProtobuf_PROTOC_EXECUTABLE={0}/bin/protoc', env.PROTOBUF_ROOT) || '' }}
+        CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' ||
+              startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc' || '' }}
 
-        CMAKE_ARGS: >-
-          ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' ||
-              startsWith(matrix.os, 'macos') && format('-DProtobuf_ROOT={0} -DCMAKE_PREFIX_PATH={0} -DProtobuf_PROTOC_EXECUTABLE={0}/bin/protoc', env.PROTOBUF_ROOT) || '' }}
+        CMAKE_ARGS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' ||
+              startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc' || '' }}
+
 
         CIBW_ENVIRONMENT_WINDOWS: |
           BOOST_ROOT=C:/vcpkg/installed/x64-windows
@@ -249,15 +248,15 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}
           MACOSX_DEPLOYMENT_TARGET=14.0
-          PROTOBUF_ROOT=$HOME/protobuf3
-          Protobuf_ROOT=$HOME/protobuf3
-          Protobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc
-          CMAKE_PREFIX_PATH=$HOME/protobuf3
-          CMAKE_INCLUDE_PATH=$HOME/protobuf3/include
-          CMAKE_LIBRARY_PATH=$HOME/protobuf3/lib
-          CXXFLAGS="-I$BOOST_ROOT/include -I$PROTOBUF_ROOT/include"
-          LDFLAGS="-L$BOOST_ROOT/lib -L$PROTOBUF_ROOT/lib"
-          PATH=$HOME/protobuf3/bin:$PATH
+          PROTOBUF_ROOT=/Users/runner/protobuf3
+          Protobuf_ROOT=/Users/runner/protobuf3
+          Protobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc
+          CMAKE_PREFIX_PATH=/Users/runner/protobuf3
+          CMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include
+          CMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib
+          CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf3/include"
+          LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf3/lib"
+          PATH=/Users/runner/protobuf3/bin:$PATH
 
 
 
