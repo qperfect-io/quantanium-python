@@ -137,10 +137,10 @@ jobs:
         # CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' ||
-              startsWith(matrix.os, 'macos') && format('-DProtobuf_ROOT={0} -DCMAKE_PREFIX_PATH={0} -DProtobuf_PROTOC_EXECUTABLE={0}/bin/protoc', steps.install-protobuf.outputs.PROTOBUF_ROOT) ||'' }}
+          startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=$HOME/protobuf3 -DCMAKE_PREFIX_PATH=$HOME/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc' || '' }}
 
         CMAKE_ARGS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' ||
-              startsWith(matrix.os, 'macos') && format('-DProtobuf_ROOT={0} -DCMAKE_PREFIX_PATH={0} -DProtobuf_PROTOC_EXECUTABLE={0}/bin/protoc', steps.install-protobuf.outputs.PROTOBUF_ROOT) ||'' }}
+          startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=$HOME/protobuf3 -DCMAKE_PREFIX_PATH=$HOME/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc' || '' }}
 
         CIBW_ENVIRONMENT_WINDOWS: |
           BOOST_ROOT=C:/vcpkg/installed/x64-windows
@@ -244,15 +244,15 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}
           MACOSX_DEPLOYMENT_TARGET=14.0
-          PROTOBUF_ROOT=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}
-          CMAKE_PREFIX_PATH=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}
-          CMAKE_INCLUDE_PATH=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/include
-          CMAKE_LIBRARY_PATH=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/lib
-          Protobuf_ROOT=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}
-          Protobuf_PROTOC_EXECUTABLE=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/bin/protoc
-          CXXFLAGS="-I${{ steps.install-boost.outputs.BOOST_ROOT }}/include -I${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/include"
-          LDFLAGS="-L${{ steps.install-boost.outputs.BOOST_ROOT }}/lib -L${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/lib"
-          PATH=${{ steps.install-protobuf.outputs.PROTOBUF_ROOT }}/bin:$PATH
+          PROTOBUF_ROOT=$HOME/protobuf3
+          CMAKE_PREFIX_PATH=$HOME/protobuf3
+          CMAKE_INCLUDE_PATH=$HOME/protobuf3/include
+          CMAKE_LIBRARY_PATH=$HOME/protobuf3/lib
+          Protobuf_ROOT=$HOME/protobuf3
+          Protobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc
+          CXXFLAGS="-I${{ steps.install-boost.outputs.BOOST_ROOT }}/include -I$HOME/protobuf3/include"
+          LDFLAGS="-L${{ steps.install-boost.outputs.BOOST_ROOT }}/lib -L$HOME/protobuf3/lib"
+          PATH=$HOME/protobuf3/bin:$PATH
 
 
 
