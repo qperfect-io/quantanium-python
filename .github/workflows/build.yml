@@ -197,8 +197,8 @@ jobs:
           make install
           echo "PROTOBUF_ROOT=/Users/runner/protobuf3" >> $GITHUB_ENV
           echo "PROTOBUF_ROOT=/Users/runner/protobuf3" >> $GITHUB_OUTPUT
-          ls /Users/runner/protobuf3
-          
+        
+
           # Set environment variables for CMake and compiler
           export BOOST_ROOT=$(brew --prefix boost)
           export PROTOBUF_ROOT=/Users/runner/protobuf3
@@ -251,6 +251,8 @@ jobs:
           BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}
           MACOSX_DEPLOYMENT_TARGET=14.0
           PROTOBUF_ROOT=/Users/runner/protobuf3
+          PROTOBUF_INCLUDEDIR=/Users/runner/protobuf3/x64-windows/include
+          PROTOBUF_LIBRARYDIR=/Users/runner/protobuf3/lib
           Protobuf_ROOT=/Users/runner/protobuf3
           Protobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc
           CMAKE_PREFIX_PATH=/Users/runner/protobuf3
