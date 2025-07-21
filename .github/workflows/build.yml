@@ -140,7 +140,8 @@ jobs:
           startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=$HOME/protobuf3 -DCMAKE_PREFIX_PATH=$HOME/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc' || '' }}
 
         CMAKE_ARGS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' ||
-          startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=$HOME/protobuf3 -DCMAKE_PREFIX_PATH=$HOME/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc' || '' }}
+          startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=$HOME/protobuf3 -DCMAKE_PREFIX_PATH=$HOME/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc'    -DCMAKE_INCLUDE_PATH=$HOME/protobuf3/include -DCMAKE_LIBRARY_PATH=$HOME/protobuf3/lib -DProtobuf_USE_STATIC_LIBS=ON' || '' }}
+  startsWith(matrix.os, 'macos') && 
 
         CIBW_ENVIRONMENT_WINDOWS: |
           BOOST_ROOT=C:/vcpkg/installed/x64-windows
@@ -183,8 +184,11 @@ jobs:
 
           # Install Protobuf v3.21.12 manually from source
           brew uninstall protobuf
+          mv /opt/homebrew/lib/cmake/protobuf /opt/homebrew/lib/cmake/protobuf.bak
+          mv /opt/homebrew/include/google/protobuf /opt/homebrew/include/google/protobuf.bak
           git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
           cd protobuf
+
           git submodule update --init --recursive
           mkdir build && cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/protobuf3
@@ -245,13 +249,13 @@ jobs:
           BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}
           MACOSX_DEPLOYMENT_TARGET=14.0
           PROTOBUF_ROOT=$HOME/protobuf3
+          Protobuf_ROOT=$HOME/protobuf3
+          Protobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc
           CMAKE_PREFIX_PATH=$HOME/protobuf3
           CMAKE_INCLUDE_PATH=$HOME/protobuf3/include
           CMAKE_LIBRARY_PATH=$HOME/protobuf3/lib
-          Protobuf_ROOT=$HOME/protobuf3
-          Protobuf_PROTOC_EXECUTABLE=$HOME/protobuf3/bin/protoc
-          CXXFLAGS="-I${{ steps.install-boost.outputs.BOOST_ROOT }}/include -I$HOME/protobuf3/include"
-          LDFLAGS="-L${{ steps.install-boost.outputs.BOOST_ROOT }}/lib -L$HOME/protobuf3/lib"
+          CXXFLAGS="-I$BOOST_ROOT/include -I$PROTOBUF_ROOT/include"
+          LDFLAGS="-L$BOOST_ROOT/lib -L$PROTOBUF_ROOT/lib"
           PATH=$HOME/protobuf3/bin:$PATH
 
 
