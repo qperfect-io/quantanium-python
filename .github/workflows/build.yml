@@ -125,7 +125,7 @@ jobs:
         set(CMAKE_INCLUDE_PATH "/Users/runner/protobuf3/include" CACHE PATH "")
         set(CMAKE_LIBRARY_PATH "/Users/runner/protobuf3/lib" CACHE PATH "")
         EOF
-
+        
     - uses: pypa/cibuildwheel@v2.22
       env:
         CIBW_ENABLE: cpython-prerelease
@@ -142,14 +142,17 @@ jobs:
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         #CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
+        CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} -v {wheel}"
 
         # CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
         # CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' ||
-              startsWith(matrix.os, 'macos') && format('-DCMAKE_TOOLCHAIN_FILE={0}/protobuf-toolchain-macos.cmake', github.workspace) || '' }}
+              startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc' || '' }}
+
         CMAKE_ARGS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' ||
-              startsWith(matrix.os, 'macos') && format('-DCMAKE_TOOLCHAIN_FILE={0}/protobuf-toolchain-macos.cmake', github.workspace) || '' }}
+              startsWith(matrix.os, 'macos') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc' || '' }}
+
 
         CIBW_ENVIRONMENT_WINDOWS: |
           BOOST_ROOT=C:/vcpkg/installed/x64-windows
