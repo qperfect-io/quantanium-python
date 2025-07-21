@@ -81,7 +81,7 @@ jobs:
         if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
         elif [[ "${{ matrix.os }}" == "macos-*" ]]; then
-          brew install boost gcc llvm libomp protobuf
+          brew install boost gcc llvm libomp 
         # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
 
         fi
@@ -151,6 +151,31 @@ jobs:
           BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
           BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
 
+        # CIBW_BEFORE_ALL_MACOS: |
+        #     # OpenMP dependencies for MacOS
+        #     set -x
+        #     echo "---------------------DEBUG------------------------------"
+        #     brew update
+        #     brew install gcc llvm libomp 
+        #     brew uninstall protobuf
+        #     brew install protobuf@3
+        #     brew link --force protobuf@3
+        #     brew install boost
+        #     brew link --force boost
+        #     brew list
+        #     DETECTED_ARCH=$(uname -m)
+        #     echo "Detected architecture: $DETECTED_ARCH"
+         
+        #     export BOOST_ROOT=$(brew --prefix boost)
+        #     export CXXFLAGS="-I$BOOST_ROOT/include -I$(brew --prefix protobuf)/include"
+        #     export LDFLAGS="-L$BOOST_ROOT/lib -L$(brew --prefix protobuf)/lib"
+        #     # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
+        #     # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
+        #     echo "Protobuf installed at $(brew --prefix protobuf)"
+        #     protoc --version
+        #     echo "--------------------END DEBUG --------------------------"	
+        #     set +x
+            
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
             set -x
@@ -158,7 +183,14 @@ jobs:
             brew update
             brew install gcc llvm libomp 
             brew uninstall protobuf
-            brew install protobuf@3
+            git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
+            cd protobuf
+
+            git submodule update --init --recursive
+            mkdir build && cd build
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf3
+            make -j2
+            make install
             brew link --force protobuf@3
             brew install boost
             brew link --force boost
@@ -175,7 +207,6 @@ jobs:
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
             set +x
-            
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
           set -x
