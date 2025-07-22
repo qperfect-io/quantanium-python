@@ -150,6 +150,31 @@ jobs:
           BOOST_ROOT=C:/vcpkg/installed/x64-windows
           BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
           BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
+
+        # CIBW_BEFORE_ALL_MACOS: |
+        #     # OpenMP dependencies for MacOS
+        #     set -x
+        #     echo "---------------------DEBUG------------------------------"
+        #     brew update
+        #     brew install gcc llvm libomp 
+        #     brew uninstall protobuf
+        #     brew install protobuf@3
+        #     brew link --force protobuf@3
+        #     brew install boost
+        #     brew link --force boost
+        #     brew list
+        #     DETECTED_ARCH=$(uname -m)
+        #     echo "Detected architecture: $DETECTED_ARCH"
+         
+        #     export BOOST_ROOT=$(brew --prefix boost)
+        #     export CXXFLAGS="-I$BOOST_ROOT/include -I$(brew --prefix protobuf)/include"
+        #     export LDFLAGS="-L$BOOST_ROOT/lib -L$(brew --prefix protobuf)/lib"
+        #     # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
+        #     # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
+        #     echo "Protobuf installed at $(brew --prefix protobuf)"
+        #     protoc --version
+        #     echo "--------------------END DEBUG --------------------------"	
+        #     set +x
             
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
@@ -189,6 +214,42 @@ jobs:
         #     cmake .. -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib &&
         #     make -j2 &&
         #     cd ..
+
+        CIBW_BEFORE_ALL_LINUX: |
+          # Install Boost
+          set -x
+          yum install -y epel-release autoconf automake libtool gcc gcc-c++ make unzip wget &&
+          #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.tar.gz &&
+          wget -O boost_1_86_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.tar.gz/download &&
+          tar -xzf boost_1_86_0.tar.gz &&
+          cd boost_1_86_0 &&
+          ./bootstrap.sh &&
+          ./b2 install &&
+          cd .. &&
+          # Install dependencies using yum
+          
+          export CMAKE_CXX_STANDARD=20 &&
+          # Download and build Protobuf
+          curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-linux-x86_64.zip &&
+          unzip protoc-21.12-linux-x86_64.zip -d /usr/local/ &&
+          curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protobuf-all-21.12.tar.gz &&
+          tar -xzf protobuf-all-21.12.tar.gz &&
+          cd protobuf-21.12 &&
+          ./configure  &&
+          make -j$(nproc) &&
+          make install &&
+          export PATH="/usr/local/bin:$PATH" &&
+          export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH" &&
+          export CMAKE_PREFIX_PATH="/usr/local" &&
+          ldconfig &&
+          # Debug Protobuf installation
+          protoc --version || echo "Protoc not found"
+          ls /usr/local/include/google/protobuf || echo "Protobuf headers not found"
+          ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
+          set +x
+
+        CMAKE_CXX_STANDARD: 20
+        #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
@@ -204,44 +265,6 @@ jobs:
           CMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib
           CXXFLAGS="-I/Users/runner/protobuf3/include"
           LDFLAGS="-L/Users/runner/protobuf3/lib"
-
-
-        CIBW_BEFORE_ALL_LINUX: |
-            # Install Boost
-            set -x
-            yum install -y epel-release autoconf automake libtool gcc gcc-c++ make unzip wget &&
-            #curl -LO https://boostorg.jfrog.io/artifactory/main/release/1.86.0/source/boost_1_86_0.tar.gz &&
-            wget -O boost_1_86_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.86.0/boost_1_86_0.tar.gz/download &&
-            tar -xzf boost_1_86_0.tar.gz &&
-            cd boost_1_86_0 &&
-            ./bootstrap.sh &&
-            ./b2 install &&
-            cd .. &&
-            # Install dependencies using yum
-            
-            export CMAKE_CXX_STANDARD=20 &&
-            # Download and build Protobuf
-            curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protoc-21.12-linux-x86_64.zip &&
-            unzip protoc-21.12-linux-x86_64.zip -d /usr/local/ &&
-            curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protobuf-all-21.12.tar.gz &&
-            tar -xzf protobuf-all-21.12.tar.gz &&
-            cd protobuf-21.12 &&
-            ./configure  &&
-            make -j$(nproc) &&
-            make install &&
-            export PATH="/usr/local/bin:$PATH" &&
-            export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH" &&
-            export CMAKE_PREFIX_PATH="/usr/local" &&
-            ldconfig &&
-            # Debug Protobuf installation
-            protoc --version || echo "Protoc not found"
-            ls /usr/local/include/google/protobuf || echo "Protobuf headers not found"
-            ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
-            set +x
-
-          CMAKE_CXX_STANDARD: 20
-          #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
-
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
