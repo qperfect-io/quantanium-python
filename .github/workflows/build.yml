@@ -199,24 +199,21 @@ jobs:
             echo "Detected architecture: $DETECTED_ARCH"
          
             export BOOST_ROOT=$(brew --prefix boost)
-            export CXXFLAGS="-I$BOOST_ROOT/include -I$(brew --prefix protobuf)/include"
-            export LDFLAGS="-L$BOOST_ROOT/lib -L$(brew --prefix protobuf)/lib"
+            export CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf3/include"
+            export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf3/lib"
             # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
             # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
             echo "Protobuf installed at $(brew --prefix protobuf)"
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
             set +x
-        CIBW_BEFORE_BUILD_MACOS: >
+        CIBW_BEFORE_BUILD_MACOS: |
           mkdir -p build &&
           cd build &&
-          cmake ..
-            -DCMAKE_PREFIX_PATH=$HOME/protobuf3
-            -DProtobuf_ROOT=$HOME/protobuf3
-            -DCMAKE_INCLUDE_PATH=$HOME/protobuf3/include
-            -DCMAKE_LIBRARY_PATH=$HOME/protobuf3/lib &&
+          cmake .. -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib &&
           make -j2 &&
           cd ..
+
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
           set -x
