@@ -205,12 +205,12 @@ jobs:
           CXXFLAGS="-I/Users/runner/protobuf3/include"
           LDFLAGS="-L/Users/runner/protobuf3/lib"
         CIBW_BEFORE_BUILD_MACOS: |
-          export CXXFLAGS="-I/Users/runner/protobuf3/include" &&
-          export LDFLAGS="-L/Users/runner/protobuf3/lib" &&
-          export CMAKE_PREFIX_PATH="/Users/runner/protobuf3" &&
-          export Protobuf_ROOT="/Users/runner/protobuf3" &&
-          export Protobuf_INCLUDE_DIR="/Users/runner/protobuf3/include" &&
-          export Protobuf_LIBRARIES="/Users/runner/protobuf3/lib" &&
+          export CXXFLAGS="-I/Users/runner/protobuf3/include" 
+          export LDFLAGS="-L/Users/runner/protobuf3/lib" 
+          export CMAKE_PREFIX_PATH="/Users/runner/protobuf3" 
+          export Protobuf_ROOT="/Users/runner/protobuf3" 
+          export Protobuf_INCLUDE_DIR="/Users/runner/protobuf3/include"
+          export Protobuf_LIBRARIES="/Users/runner/protobuf3/lib"
           export Protobuf_PROTOC_EXECUTABLE="/Users/runner/protobuf3/bin/protoc"
 
         CIBW_BEFORE_ALL_LINUX: |
