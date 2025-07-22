@@ -201,8 +201,7 @@ jobs:
             export BOOST_ROOT=$(brew --prefix boost)
             export CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf3/include"
             export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf3/lib"
-        # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
-        # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
+
             echo "Protobuf installed at $(brew --prefix protobuf)"
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
@@ -210,7 +209,6 @@ jobs:
         CIBW_BEFORE_BUILD_MACOS: |
           export CXXFLAGS="-I/Users/runner/protobuf3/include" &&
           export LDFLAGS="-L/Users/runner/protobuf3/lib" &&
-      # export PKG_CONFIG_PATH="/Users/runner/protobuf3/lib/pkgconfig" &&
           export CMAKE_PREFIX_PATH="/Users/runner/protobuf3" &&
           export Protobuf_ROOT="/Users/runner/protobuf3" &&
           export Protobuf_INCLUDE_DIR="/Users/runner/protobuf3/include" &&
