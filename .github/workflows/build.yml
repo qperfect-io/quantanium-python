@@ -214,6 +214,14 @@ jobs:
         #     cmake .. -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib &&
         #     make -j2 &&
         #     cd ..
+      CIBW_BEFORE_BUILD_MACOS: |
+        export CXXFLAGS="-I/Users/runner/protobuf3/include" &&
+        export LDFLAGS="-L/Users/runner/protobuf3/lib" &&
+        export CMAKE_PREFIX_PATH="/Users/runner/protobuf3" &&
+        export Protobuf_ROOT="/Users/runner/protobuf3" &&
+        export Protobuf_INCLUDE_DIR="/Users/runner/protobuf3/include" &&
+        export Protobuf_LIBRARIES="/Users/runner/protobuf3/lib" &&
+        export Protobuf_PROTOC_EXECUTABLE="/Users/runner/protobuf3/bin/protoc"
 
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
