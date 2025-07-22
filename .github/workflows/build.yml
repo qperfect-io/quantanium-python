@@ -223,7 +223,7 @@ jobs:
         export Protobuf_LIBRARIES="/Users/runner/protobuf3/lib" &&
         export Protobuf_PROTOC_EXECUTABLE="/Users/runner/protobuf3/bin/protoc"
 
-        CIBW_BEFORE_ALL_LINUX: |
+      CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
           set -x
           yum install -y epel-release autoconf automake libtool gcc gcc-c++ make unzip wget &&
