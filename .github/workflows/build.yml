@@ -190,7 +190,7 @@ jobs:
 
             git submodule update --init --recursive
             mkdir build && cd build
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf3
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf3 -DBUILD_SHARED_LIBS=ON
             make -j2
             make install
           
