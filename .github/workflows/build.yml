@@ -191,7 +191,7 @@ jobs:
             cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf3
             make -j2
             make install
-            brew link --force protobuf@3
+          
             brew install boost
             brew link --force boost
             brew list
@@ -207,6 +207,16 @@ jobs:
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
             set +x
+        CIBW_BEFORE_BUILD_MACOS: >
+          mkdir -p build &&
+          cd build &&
+          cmake ..
+            -DCMAKE_PREFIX_PATH=$HOME/protobuf3
+            -DProtobuf_ROOT=$HOME/protobuf3
+            -DCMAKE_INCLUDE_PATH=$HOME/protobuf3/include
+            -DCMAKE_LIBRARY_PATH=$HOME/protobuf3/lib &&
+          make -j2 &&
+          cd ..
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
           set -x
@@ -242,7 +252,19 @@ jobs:
 
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
+        CIBW_ENVIRONMENT_MACOS: |
+          BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
+          MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
+          PROTOBUF_ROOT=/Users/runner/protobuf3
+          PROTOBUF_INCLUDEDIR=/Users/runner/protobuf3/include
+          PROTOBUF_LIBRARYDIR=/Users/runner/protobuf3/lib
+          Protobuf_ROOT=/Users/runner/protobuf3
+          Protobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc
+          CMAKE_PREFIX_PATH=/Users/runner/protobuf3
+          CMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include
+          CMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib
+          CXXFLAGS="-I/Users/runner/protobuf3/include"
+          LDFLAGS="-L/Users/runner/protobuf3/lib"
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
