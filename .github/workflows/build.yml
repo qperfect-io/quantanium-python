@@ -183,14 +183,14 @@ jobs:
             brew update
             brew install gcc llvm libomp 
             brew uninstall protobuf
-            # git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
-            # cd protobuf
+            git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
+            cd protobuf
 
-            # git submodule update --init --recursive
-            # mkdir build && cd build
-            # cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf3
-            # make -j2
-            # make install
+            git submodule update --init --recursive
+            mkdir build && cd build
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf3
+            make -j2
+            make install
           
             brew install boost
             brew link --force boost
@@ -208,11 +208,11 @@ jobs:
             echo "--------------------END DEBUG --------------------------"	
             set +x
         # CIBW_BEFORE_BUILD_MACOS: |
-        #   mkdir -p build &&
-        #   cd build &&
-        #   cmake .. -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib &&
-        #   make -j2 &&
-        #   cd ..
+        #     mkdir -p build &&
+        #     cd build &&
+        #     cmake .. -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib &&
+        #     make -j2 &&
+        #     cd ..
 
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
@@ -253,8 +253,10 @@ jobs:
           BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
           PROTOBUF_ROOT=/Users/runner/protobuf3
-          PROTOBUF_INCLUDEDIR=/Users/runner/protobuf3/include
-          PROTOBUF_LIBRARYDIR=/Users/runner/protobuf3/lib
+          PROTOBUF_INCLUDE_DIR=/Users/runner/protobuf3/include
+          PROTOBUF_LIBRARIES=/Users/runner/protobuf3/lib
+          Protobuf_INCLUDE_DIR=/Users/runner/protobuf3/include
+          Protobuf_LIBRARIES=/Users/runner/protobuf3/lib
           Protobuf_ROOT=/Users/runner/protobuf3
           Protobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc
           CMAKE_PREFIX_PATH=/Users/runner/protobuf3
