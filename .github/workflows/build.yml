@@ -216,15 +216,11 @@ jobs:
             echo "--------------------END DEBUG --------------------------"	
             set +x
         
-        CIBW_BEFORE_BUILD_MACOS: |
-          export SKBUILD_CONFIG_SETTINGS='{"cmake.args": ["-DProtobuf_ROOT=/Users/runner/protobuf3", "-DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include", "-DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib", "-DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc", "-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3"]}'
+      
 
 
 
-
-        CIBW_BUILD_COMMAND_MACOS:  python -m build . --wheel --outdir {dest_dir} --config-setting=cmake.args=-DProtobuf_ROOT=/Users/runner/protobuf3 --config-setting=cmake.args=-DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include --config-setting=cmake.args=-DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib --config-setting=cmake.args=-DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc --config-setting=cmake.args=-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3
-
-
+        
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
           set -x
@@ -258,14 +254,14 @@ jobs:
           ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
           set +x
       
-        CIBW_BUILD_FRONTEND: build
+  
 
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
-          SKBUILD_CONFIG_SETTINGS='{"cmake.args": ["-DProtobuf_ROOT=/Users/runner/protobuf3", "-DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include", "-DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib", "-DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc", "-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3"]}'
+          SKBUILD_CMAKE_ARGS: "-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3"
 
 
     - name: Verify clean directory
