@@ -222,19 +222,7 @@ jobs:
         #     cmake .. -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DProtobuf_ROOT=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib &&
         #     make -j2 &&
         #     cd ..
-        CIBW_BEFORE_BUILD_MACOS: |
-          pip install delocate
-          export CXXFLAGS="-I/Users/runner/protobuf3/include" 
-          export LDFLAGS="-L/Users/runner/protobuf3/lib" 
-          export CMAKE_PREFIX_PATH="/Users/runner/protobuf3" 
-          export Protobuf_ROOT="/Users/runner/protobuf3" 
-          export Protobuf_INCLUDE_DIR="/Users/runner/protobuf3/include" 
-          export Protobuf_LIBRARIES="/Users/runner/protobuf3/lib" 
-          export Protobuf_PROTOC_EXECUTABLE="/Users/runner/protobuf3/bin/protoc"
-          export PROTOBUF_ROOT="/Users/runner/protobuf3" 
-          export PROTOBUF_INCLUDE_DIR="/Users/runner/protobuf3/include" 
-          export PROTOBUF_LIBRARIES="/Users/runner/protobuf3/lib" 
-          export PROTOBUF_PROTOC_EXECUTABLE="/Users/runner/protobuf3/bin/protoc"
+
 
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
@@ -274,20 +262,8 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
-          SCIKIT_BUILD_CORE_ARGS=--cmake-args=-DProtobuf_ROOT=/Users/runner/protobuf3 --cmake-args=-DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include ...
+          SKBUILD_CMAKE_ARGS=-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3
 
-          PROTOBUF_ROOT=/Users/runner/protobuf3
-          PROTOBUF_INCLUDE_DIR=/Users/runner/protobuf3/include
-          PROTOBUF_LIBRARIES=/Users/runner/protobuf3/lib
-          Protobuf_INCLUDE_DIR=/Users/runner/protobuf3/include
-          Protobuf_LIBRARIES=/Users/runner/protobuf3/lib
-          Protobuf_ROOT=/Users/runner/protobuf3
-          Protobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc
-          CMAKE_PREFIX_PATH=/Users/runner/protobuf3
-          CMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include
-          CMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib
-          CXXFLAGS="-I/Users/runner/protobuf3/include"
-          LDFLAGS="-L/Users/runner/protobuf3/lib"
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
