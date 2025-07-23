@@ -256,7 +256,8 @@ jobs:
           ls /usr/local/include/google/protobuf || echo "Protobuf headers not found"
           ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
           set +x
-        CIBW_BUILD_FRONTEND: "build[config_settings]"
+      CIBW_BUILD_FRONTEND: build
+
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
         CIBW_ENVIRONMENT_MACOS: |
