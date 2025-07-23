@@ -274,12 +274,8 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
-          SCIKIT_BUILD_CORE_ARGS="--cmake-args=-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3"
-          SKBUILD_CMAKE_ARGS="-DProtobuf_ROOT=/Users/runner/protobuf3 \
-                      -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include \
-                      -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib \
-                      -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc \
-                      -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3"
+          SCIKIT_BUILD_CORE_ARGS=--cmake-args=-DProtobuf_ROOT=/Users/runner/protobuf3 --cmake-args=-DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include ...
+
           PROTOBUF_ROOT=/Users/runner/protobuf3
           PROTOBUF_INCLUDE_DIR=/Users/runner/protobuf3/include
           PROTOBUF_LIBRARIES=/Users/runner/protobuf3/lib
