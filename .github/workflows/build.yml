@@ -253,10 +253,7 @@ jobs:
 
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
-        CIBW_ENVIRONMENT_MACOS: |
-          BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
-          MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
-          SKBUILD_CMAKE_DEFINE="-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 \
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} SKBUILD_CMAKE_DEFINE="-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 \
             -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include \
             -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib \
             -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc \
@@ -265,8 +262,7 @@ jobs:
         CIBW_ENVIRONMENT_PASS_MACOS: "SKBUILD_CMAKE_DEFINE"
 
         CIBW_BEFORE_BUILD: |
-          ls /Users/runner/protobuf3
-          ls /Users/runner/protobuf3/include
+          ls /Users/runner/protobuf3/include/google
           mkdir build
           cd build
           cmake .. \
@@ -275,9 +271,9 @@ jobs:
             -DProtobuf_ROOT=/Users/runner/protobuf3 \
             -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 \
             -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include \
-            -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib \
+            -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib -L$(brew --prefix boost)/lib \
             -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc \
-            -DCMAKE_CXX_FLAGS="-I/Users/runner/protobuf3/include"
+            -DCMAKE_CXX_FLAGS="-I/Users/runner/protobuf3/include -I$(brew --prefix boost)/include"
           make -j4
 
     - name: Verify clean directory
