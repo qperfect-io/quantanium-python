@@ -191,7 +191,7 @@ jobs:
             git submodule update --init --recursive
             mkdir build && cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/usr \
+                -DCMAKE_INSTALL_PREFIX=/usr/local \
                 -DBUILD_SHARED_LIBS=ON \
                 -Dprotobuf_BUILD_TESTS=OFF \
                 -Dprotobuf_BUILD_PROTOC_BINARIES=ON \
@@ -210,7 +210,7 @@ jobs:
             # export CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf3/include"
             # export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf3/lib"
             export PATH="/usr/local/bin:$PATH" &&
-            export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH" &&
+            export DYLD_LIBRARY_PATH="/usr/local/lib:$DYLD_LIBRARY_PATH" &&
             export CMAKE_PREFIX_PATH="/usr/local" &&
             #ldconfig &&
             # Debug Protobuf installation
@@ -262,7 +262,7 @@ jobs:
 
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} 
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH   CXXFLAGS="-I/usr/local/include"  LDFLAGS="-L/usr/local/lib" 
         #SKBUILD_CMAKE_DEFINE=-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_CXX_FLAGS=-I/Users/runner/protobuf3/include
         #CIBW_ENVIRONMENT_PASS_MACOS: SKBUILD_CMAKE_DEFINE
 
