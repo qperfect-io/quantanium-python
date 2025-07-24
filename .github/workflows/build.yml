@@ -181,24 +181,24 @@ jobs:
             echo "---------------------DEBUG------------------------------"
             brew update
             brew install gcc llvm libomp 
-            brew install protobuf
-            brew link --force protobuf
-            pkg-config --cflags
+            # brew install protobuf
+            # brew link --force protobuf
+          
             # brew uninstall protobuf
             # git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
             # cd protobuf
 
-            # git submodule update --init --recursive
-            # mkdir build && cd build
-            # cmake .. -DCMAKE_BUILD_TYPE=Release \
-            #     -DCMAKE_INSTALL_PREFIX=/usr/local \
-            #     -DBUILD_SHARED_LIBS=ON \
-            #     -Dprotobuf_BUILD_TESTS=OFF \
-            #     -Dprotobuf_BUILD_PROTOC_BINARIES=ON \
-            #     -Dprotobuf_INSTALL=ON \
-            #     -DCMAKE_INSTALL_LIBDIR=lib
-            # make -j2
-            # sudo make install
+            git submodule update --init --recursive
+            mkdir build && cd build
+            cmake .. -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=/usr \
+                -DBUILD_SHARED_LIBS=ON \
+                -Dprotobuf_BUILD_TESTS=OFF \
+                -Dprotobuf_BUILD_PROTOC_BINARIES=ON \
+                -Dprotobuf_INSTALL=ON \
+                -DCMAKE_INSTALL_LIBDIR=lib
+            make -j2
+            sudo make install
           
             brew install boost
             brew link --force boost
