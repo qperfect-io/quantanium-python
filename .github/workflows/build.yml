@@ -265,7 +265,19 @@ jobs:
         CIBW_ENVIRONMENT_PASS_MACOS: "SKBUILD_CMAKE_DEFINE"
 
         CIBW_BEFORE_BUILD: |
-          cmake -B build -S . -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3
+          ls /Users/runner/protobuf3
+          ls /Users/runner/protobuf3/include
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DProtobuf_ROOT=/Users/runner/protobuf3 \
+            -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 \
+            -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include \
+            -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib \
+            -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc \
+            -DCMAKE_CXX_FLAGS="-I/Users/runner/protobuf3/include"
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
