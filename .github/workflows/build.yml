@@ -130,8 +130,6 @@ jobs:
         CIBW_BUILD_VERBOSITY: 3
         CIBW_ARCHS_WINDOWS: AMD64 #auto ARM64
         CIBW_ARCHS_LINUX: x86_64 #"auto aarch64" #x86_64 # On an Linux Intel runner, build Intel and ARM wheels
-        #CIBW_ARCHS_MACOS: arm64 #x86_64    # x86_64 #universal2 
-        #CIBW_PLATFORM_TAG_MACOS: "macosx_14_0" #"macosx_13_0"
         CIBW_ARCHS_MACOS: ${{ matrix.arch }}
         CIBW_PLATFORM_TAG_MACOS: ${{ matrix.os == 'macos-14' && 'macosx_14_0' || 'macosx_13_0' }}
 
@@ -209,8 +207,6 @@ jobs:
             export BOOST_ROOT=$(brew --prefix boost)
             export CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf3/include"
             export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf3/lib"
-            # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
-            # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
             echo "Protobuf installed at $(brew --prefix protobuf)"
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
@@ -261,8 +257,12 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
-          SKBUILD_CMAKE_ARGS: "-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3"
-
+          CXXFLAGS="-I/Users/runner/protobuf3/include"
+          LDFLAGS="-L/Users/runner/protobuf3/lib"
+          PATH="/Users/runner/protobuf3/bin:$PATH"
+          PREFIX_PATH="/Users/runner/protobuf3"
+        
+        CIBW_ENVIRONMENT_PASS_MACOS: "CXXFLAGS LDFLAGS PATH PREFIX_PATH"
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
