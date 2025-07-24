@@ -184,9 +184,9 @@ jobs:
             # brew install protobuf
             # brew link --force protobuf
           
-            # brew uninstall protobuf
-            # git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
-            # cd protobuf
+            #brew uninstall protobuf
+            git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
+            cd protobuf
 
             git submodule update --init --recursive
             mkdir build && cd build
