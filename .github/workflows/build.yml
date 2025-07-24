@@ -188,14 +188,14 @@ jobs:
             git submodule update --init --recursive
             mkdir build && cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf3 \
+                -DCMAKE_INSTALL_PREFIX=/usr/local \
                 -DBUILD_SHARED_LIBS=ON \
                 -Dprotobuf_BUILD_TESTS=OFF \
                 -Dprotobuf_BUILD_PROTOC_BINARIES=ON \
                 -Dprotobuf_INSTALL=ON \
                 -DCMAKE_INSTALL_LIBDIR=lib
             make -j2
-            make install
+            sudo make install
           
             brew install boost
             brew link --force boost
@@ -253,13 +253,14 @@ jobs:
 
         CMAKE_CXX_STANDARD: 20
         #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} SKBUILD_CMAKE_DEFINE=-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_CXX_FLAGS=-I/Users/runner/protobuf3/include
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} 
+        #SKBUILD_CMAKE_DEFINE=-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_CXX_FLAGS=-I/Users/runner/protobuf3/include
 
         
-        CIBW_ENVIRONMENT_PASS_MACOS: SKBUILD_CMAKE_DEFINE
+        #CIBW_ENVIRONMENT_PASS_MACOS: SKBUILD_CMAKE_DEFINE
 
-        CIBW_BEFORE_BUILD: |
-          ls /Users/runner/protobuf3/include/google
+        # CIBW_BEFORE_BUILD: |
+        #   ls /Users/runner/protobuf3/include/google
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
