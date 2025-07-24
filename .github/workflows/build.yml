@@ -48,18 +48,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-            arch: AMD64
-          - os: ubuntu-latest
-            arch: x86_64
+          # - os: windows-latest
+          #   arch: AMD64
+          # - os: ubuntu-latest
+          #   arch: x86_64
           - os: macos-13
             arch: x86_64
-          - os: macos-13-xlarge
-            arch: arm64
-          - os: macos-14
-            arch: arm64
-    #  matrix:  # IMPORTANT: macos-13 is an intel runner, macos-14 is apple silicon
-    #    os: [windows-latest, ubuntu-latest, macos-13, macos-14]    # [ubuntu-latest, macos-13]#, 
+          # - os: macos-13-xlarge
+          #   arch: arm64
+          # - os: macos-14
+          #   arch: arm64
+
  
     steps:
     - uses: actions/checkout@v4
@@ -260,9 +259,9 @@ jobs:
           CXXFLAGS="-I/Users/runner/protobuf3/include"
           LDFLAGS="-L/Users/runner/protobuf3/lib"
           PATH="/Users/runner/protobuf3/bin:$PATH"
-          PREFIX_PATH="/Users/runner/protobuf3"
+          CMAKE_PREFIX_PATH="/Users/runner/protobuf3"
         
-        CIBW_ENVIRONMENT_PASS_MACOS: "CXXFLAGS LDFLAGS PATH PREFIX_PATH"
+        CIBW_ENVIRONMENT_PASS_MACOS: "CXXFLAGS LDFLAGS PATH CMAKE_PREFIX_PATH"
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
