@@ -48,16 +48,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - os: windows-latest
-          #   arch: AMD64
-          # - os: ubuntu-latest
-          #   arch: x86_64
+          - os: windows-latest
+            arch: AMD64
+          - os: ubuntu-latest
+            arch: x86_64
           - os: macos-13
             arch: x86_64
-          # - os: macos-13-xlarge
-          #   arch: arm64
-          # - os: macos-14
-          #   arch: arm64
+          - os: macos-13-xlarge
+            arch: arm64
+          - os: macos-14
+            arch: arm64
 
  
     steps:
@@ -85,12 +85,6 @@ jobs:
 
         fi
       shell: bash
-
-    # - name: Export macOS target >= 13.0
-    #   if: startsWith(matrix.os, 'macos-13') || matrix.os == 'macos-14'
-    #   run: |
-    #     echo "MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
-    #     echo "BOOST_ROOT=$(brew --prefix boost)"      >> $GITHUB_ENV
 
     - name: Install Boost on Windows via vcpkg
       if: matrix.os == 'windows-latest'
@@ -136,10 +130,8 @@ jobs:
 
 
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
-        #CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
-        #CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel --lib-path /Users/runner/protobuf3/lib -w {dest_dir} -v {wheel}"
-
+    
       #  CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
         CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
         CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3' || '' }}
@@ -150,30 +142,7 @@ jobs:
           BOOST_INCLUDEDIR=C:/vcpkg/installed/x64-windows/include
           BOOST_LIBRARYDIR=C:/vcpkg/installed/x64-windows/lib
 
-        # CIBW_BEFORE_ALL_MACOS: |
-        #     # OpenMP dependencies for MacOS
-        #     set -x
-        #     echo "---------------------DEBUG------------------------------"
-        #     brew update
-        #     brew install gcc llvm libomp 
-        #     brew uninstall protobuf
-        #     brew install protobuf@3
-        #     brew link --force protobuf@3
-        #     brew install boost
-        #     brew link --force boost
-        #     brew list
-        #     DETECTED_ARCH=$(uname -m)
-        #     echo "Detected architecture: $DETECTED_ARCH"
-         
-        #     export BOOST_ROOT=$(brew --prefix boost)
-        #     export CXXFLAGS="-I$BOOST_ROOT/include -I$(brew --prefix protobuf)/include"
-        #     export LDFLAGS="-L$BOOST_ROOT/lib -L$(brew --prefix protobuf)/lib"
-        #     # export CXXFLAGS="-I$(brew --prefix protobuf)/include"
-        #     # export LDFLAGS="-L$(brew --prefix protobuf)/lib"
-        #     echo "Protobuf installed at $(brew --prefix protobuf)"
-        #     protoc --version
-        #     echo "--------------------END DEBUG --------------------------"	
-        #     set +x
+ 
             
         CIBW_BEFORE_ALL_MACOS: |
             # OpenMP dependencies for MacOS
@@ -205,25 +174,12 @@ jobs:
             brew list
             DETECTED_ARCH=$(uname -m)
             echo "Detected architecture: $DETECTED_ARCH"
-         
-            # export BOOST_ROOT=$(brew --prefix boost)
-            # export CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf3/include"
-            # export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf3/lib"
             export PATH="/usr/local/bin:$PATH" &&
             export DYLD_LIBRARY_PATH="/usr/local/lib:$DYLD_LIBRARY_PATH" &&
             export CMAKE_PREFIX_PATH="/usr/local" &&
-            #ldconfig &&
-            # Debug Protobuf installation
-            
-            #echo "Protobuf installed at $(brew --prefix protobuf)"
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
             set +x
-        
-      
-
-
-
         
         CIBW_BEFORE_ALL_LINUX: |
           # Install Boost
@@ -261,13 +217,10 @@ jobs:
   
 
         CMAKE_CXX_STANDARD: 20
-        #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
         CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH   CXXFLAGS="-I/usr/local/include"  LDFLAGS="-L/usr/local/lib" 
-        #SKBUILD_CMAKE_DEFINE=-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_CXX_FLAGS=-I/Users/runner/protobuf3/include
-        #CIBW_ENVIRONMENT_PASS_MACOS: SKBUILD_CMAKE_DEFINE
 
-        CIBW_BEFORE_BUILD: protoc --version echo $LD_LIBRARY_PATH
-        #   ls /Users/runner/protobuf3/include/google
+      
+     
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
