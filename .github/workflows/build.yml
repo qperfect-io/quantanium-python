@@ -183,6 +183,7 @@ jobs:
             brew install gcc llvm libomp 
             brew install protobuf
             brew link --force protobuf
+            pkg-config --cflags
             # brew uninstall protobuf
             # git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
             # cd protobuf
@@ -211,9 +212,9 @@ jobs:
             export PATH="/usr/local/bin:$PATH" &&
             export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH" &&
             export CMAKE_PREFIX_PATH="/usr/local" &&
-            ldconfig &&
+            #ldconfig &&
             # Debug Protobuf installation
-            protoc --version || echo "Protoc not found"
+            
             #echo "Protobuf installed at $(brew --prefix protobuf)"
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
@@ -263,11 +264,9 @@ jobs:
         #CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=$BOOST_ROOT #BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' #MACOSX_DEPLOYMENT_TARGET=14.0
         CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} 
         #SKBUILD_CMAKE_DEFINE=-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_CXX_FLAGS=-I/Users/runner/protobuf3/include
-
-        
         #CIBW_ENVIRONMENT_PASS_MACOS: SKBUILD_CMAKE_DEFINE
 
-        # CIBW_BEFORE_BUILD: |
+        CIBW_BEFORE_BUILD: protoc --version echo $LD_LIBRARY_PATH
         #   ls /Users/runner/protobuf3/include/google
 
     - name: Verify clean directory
