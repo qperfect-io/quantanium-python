@@ -206,7 +206,7 @@ jobs:
             export BOOST_ROOT=$(brew --prefix boost)
             export CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf3/include"
             export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf3/lib"
-            echo "Protobuf installed at $(brew --prefix protobuf)"
+            #echo "Protobuf installed at $(brew --prefix protobuf)"
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
             set +x
@@ -256,12 +256,13 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: |
           BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' 
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }}
-          CXXFLAGS="-I/Users/runner/protobuf3/include"
-          LDFLAGS="-L/Users/runner/protobuf3/lib"
-          PATH="/Users/runner/protobuf3/bin:$PATH"
-          CMAKE_PREFIX_PATH="/Users/runner/protobuf3"
+          SKBUILD_CMAKE_DEFINE="-DCMAKE_PREFIX_PATH=/Users/runner/protobuf3 \
+            -DCMAKE_INCLUDE_PATH=/Users/runner/protobuf3/include \
+            -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib \
+            -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc \
+            -DCMAKE_CXX_FLAGS="-I/Users/runner/protobuf3/include"
         
-        CIBW_ENVIRONMENT_PASS_MACOS: "CXXFLAGS LDFLAGS PATH CMAKE_PREFIX_PATH"
+        CIBW_ENVIRONMENT_PASS_MACOS: "SKBUILD_CMAKE_DEFINE"
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
