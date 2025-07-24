@@ -263,15 +263,14 @@ jobs:
             -DCMAKE_CXX_FLAGS="-I/Users/runner/protobuf3/include"
         
         CIBW_ENVIRONMENT_PASS_MACOS: "SKBUILD_CMAKE_DEFINE"
+        CIBW_BEFORE_BUILD: |
+          cmake --DCMAKE_PREFIX_PATH=/Users/runner/protobuf3  --log-level=DEBUG .
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
       shell: bash
 
-    # - uses: actions/upload-artifact@v4
-    #   with:
-    #     name: cibw-wheels-${{ matrix.os }}
-    #     path: wheelhouse/*.whl
+
     - uses: actions/upload-artifact@v4
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
