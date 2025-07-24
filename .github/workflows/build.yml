@@ -278,6 +278,7 @@ jobs:
             -DCMAKE_LIBRARY_PATH=/Users/runner/protobuf3/lib \
             -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc \
             -DCMAKE_CXX_FLAGS="-I/Users/runner/protobuf3/include"
+          make -j4
 
     - name: Verify clean directory
       run: git diff --exit-code --ignore-submodules
