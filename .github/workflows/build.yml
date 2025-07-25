@@ -131,7 +131,7 @@ jobs:
     
         CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
           pip install delocate
-          delocate-wheel -w {dest_dir} -v -L /Users/runner/protobuf/lib {wheel}
+          delocate-wheel -w {dest_dir} {wheel}
         CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
         CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
       # CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3' || '' }}
@@ -159,7 +159,7 @@ jobs:
             git submodule update --init --recursive
             mkdir build && cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf \
+                -DCMAKE_INSTALL_PREFIX=/usr/local \
                 -DBUILD_SHARED_LIBS=ON \
                 -Dprotobuf_BUILD_TESTS=OFF \
                 -Dprotobuf_BUILD_PROTOC_BINARIES=ON \
@@ -177,9 +177,9 @@ jobs:
             export LDFLAGS="-L$BOOST_ROOT/lib"
             DETECTED_ARCH=$(uname -m)
             echo "Detected architecture: $DETECTED_ARCH"
-            export PATH="/Users/runner/protobuf/bin:$PATH" &&
-            export DYLD_LIBRARY_PATH="/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH" &&
-            export CMAKE_PREFIX_PATH="/Users/runner/protobuf" &&
+            export PATH="/usr/local/bin:$PATH" &&
+            export DYLD_LIBRARY_PATH="/usr/local/lib:$DYLD_LIBRARY_PATH" &&
+            export CMAKE_PREFIX_PATH="/usr/local" &&
             protoc --version
             echo "--------------------END DEBUG --------------------------"	
             set +x
@@ -220,7 +220,7 @@ jobs:
   
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH  CXXFLAGS="-I/usr/local/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/usr/local/lib -L$(brew --prefix boost)/lib" 
 
       
      
