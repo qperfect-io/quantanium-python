@@ -25,7 +25,7 @@ from ._core import (
 )
 from ._core import QCSResults as QuantaniumQCSResults
 from ._core import BitVector as QuantaniumBitVector
-
+from mimiqcircuits.lazy import LazyExpr, LazyArg
 from mimiqcircuits import Circuit as MimiqCircuit, QCSResults
 import mimiqcircuits as mc
 
@@ -61,11 +61,15 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.GateCRX,
     mc.GateCRY,
     mc.GateCRZ,
+    mc.GateRNZ,
     mc.Barrier,
+    mc.Block,
+    mc.Repeat,
     mc.Measure,
     mc.Reset,
     mc.IfStatement,
     mc.PauliString,
+    mc.RPauli,
     mc.Amplitude,
     mc.PauliNoise,
     mc.PauliX,
@@ -82,7 +86,23 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.ThermalNoise,
     mc.Kraus,
     mc.GateCustom,
-  
+    mc.GateDecl,
+    mc.GateCall,
+    mc.HamiltonianTerm,
+    mc.Hamiltonian,
+    mc.Detector,
+    mc.ObservableInclude,
+    mc.Add,
+    mc.Multiply,
+    mc.Pow,
+    mc.Not,
+    mc.Tick,
+    mc.ShiftCoordinates,
+    mc.QubitCoordinates,
+    mc.MeasureReset,
+    mc.GateHXY,
+    mc.GateHYZ
+
 }
 
 
@@ -93,15 +113,65 @@ class Quantanium:
         """
         pass
 
+
+
+    @staticmethod
+    def unwrap(op):
+        """
+        Recursively unwraps a quantum operation to obtain its base (inner) gate.
+
+        This function handles common wrappers like:
+        - Power (e.g., S = Power(Z, 1/2))
+        - Control (e.g., Control(H))
+        - Inverse (e.g., Inverse(T))
+
+        Returns:
+            The innermost unwrapped gate/operation (e.g., GateZ).
+        """
+        seen = set()
+
+        while True:
+            if id(op) in seen:
+                # Prevent infinite loops in recursive wrappers
+                break
+            seen.add(id(op))
+
+            # Generic .get_operation() method
+            if hasattr(op, "get_operation"):
+                inner = op.get_operation()
+                if inner is not op:
+                    op = inner
+                    continue
+
+            # Power wrapper
+            if isinstance(op, mc.Power) and hasattr(op, "op"):
+                op = op.op
+                continue
+
+            # Inverse wrapper
+            if isinstance(op, mc.Inverse) and hasattr(op, "op"):
+                op = op.op
+                continue
+
+            # Control wrapper
+            if isinstance(op, mc.Control) and hasattr(op, "op"):
+                op = op.op
+                continue
+            break
+        return op
+
+
     def issupported(self, op: mc.Operation) -> bool:
         if type(op) in QUANTANIUM_SUPPORTED_OPERATIONS:
             return True
 
         if isinstance(op, mc.IfStatement):
             return self.issupported(op.get_operation())
+ 
+        op_name = self.unwrap(op)
+        if type(op_name) in QUANTANIUM_SUPPORTED_OPERATIONS:
+            return True
 
-        if isinstance(op, mc.Control):
-            return self.issupported(op.get_operation())
 
         if isinstance(op, mc.BondDim):
             raise ValueError(
@@ -210,7 +280,6 @@ class Quantanium:
 
             # Now that tmp is closed (and unlocked), we can reopen it
             qua_circuit = ProtoParser().load_proto(tmp_name)
-
         except Exception as e:
             # Propagate with your custom message
             raise Exception(f"Error converting mimiq::Circuit to Circuit: {e}")
@@ -224,14 +293,7 @@ class Quantanium:
                     pass
 
         return qua_circuit
-        # with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
-        #     try:
-        #         self._decompose_mimiq(mimiq_circuit).saveproto(tmp)
-        #         tmp.flush()
-        #         qua_circuit = ProtoParser().load_proto(tmp.name)
-        #     except Exception as e:
-        #         raise Exception(f"Error converting mimiq::Circuit to Circuit: {e}")
-        # return qua_circuit
+
 
     def convert_qua_to_mimiq_circuit(self, qua_circuit: Circuit) -> MimiqCircuit:
         """
@@ -271,15 +333,7 @@ class Quantanium:
                     pass
 
         return mimiq_circuit
-        # with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
-        #     try:
-        #         pp = ProtoParser()    
-        #         pp.save_proto(tmp.name, qua_circuit)
-        #         mimiq_circuit = MimiqCircuit()
-        #         mimiq_circuit = mimiq_circuit.loadproto(tmp)
-        #     except Exception as e:
-        #         raise Exception(f"Error converting Circuit to mimiq::Circuit: {e}")
-        # return mimiq_circuit
+
     
     def parse_qasm(self, qasm_file: str) -> MimiqCircuit:
         """
@@ -313,37 +367,16 @@ class Quantanium:
         Raises:
             Exception: If there is an error in the conversion process.
         """
-        tmp_name = None
-        try:
-            with tempfile.NamedTemporaryFile(suffix='.pb', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
+            try:
                 pp = ProtoResult()
                 pp.save_proto(tmp.name, qua_results)
-                tmp_name = tmp.name
-
-
-            mimiq_results = QCSResults()
-            mimiq_results = mimiq_results.loadproto(tmp_name)
-        except Exception as e:
-            raise Exception(f"Error converting QuantaniumQCSResults to Mimiq QCSResults: {e}")
-        finally:
-  
-            if tmp_name and os.path.exists(tmp_name):
-                try:
-                    os.remove(tmp_name)
-                except OSError:
-                    pass
+                mimiq_results = QCSResults()
+                mimiq_results = mimiq_results.loadproto(tmp)
+            except Exception as e:
+                raise Exception(f"Error converting QCSResults to QCSResult: {e}")
 
         return mimiq_results
-        # with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
-        #     try:
-        #         pp = ProtoResult()
-        #         pp.save_proto(tmp.name, qua_results)
-        #         mimiq_results = QCSResults()
-        #         mimiq_results = mimiq_results.loadproto(tmp)
-        #     except Exception as e:
-        #         raise Exception(f"Error converting QCSResults to QCSResult: {e}")
-
-        # return mimiq_results
 
     def execute(
         self,
