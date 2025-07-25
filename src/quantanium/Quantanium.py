@@ -25,7 +25,7 @@ from ._core import (
 )
 from ._core import QCSResults as QuantaniumQCSResults
 from ._core import BitVector as QuantaniumBitVector
-
+from mimiqcircuits.lazy import LazyExpr, LazyArg
 from mimiqcircuits import Circuit as MimiqCircuit, QCSResults
 import mimiqcircuits as mc
 
@@ -61,11 +61,15 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.GateCRX,
     mc.GateCRY,
     mc.GateCRZ,
+    mc.GateRNZ,
     mc.Barrier,
+    mc.Block,
+    mc.Repeat,
     mc.Measure,
     mc.Reset,
     mc.IfStatement,
     mc.PauliString,
+    mc.RPauli,
     mc.Amplitude,
     mc.PauliNoise,
     mc.PauliX,
@@ -82,7 +86,23 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.ThermalNoise,
     mc.Kraus,
     mc.GateCustom,
-  
+    mc.GateDecl,
+    mc.GateCall,
+    mc.HamiltonianTerm,
+    mc.Hamiltonian,
+    mc.Detector,
+    mc.ObservableInclude,
+    mc.Add,
+    mc.Multiply,
+    mc.Pow,
+    mc.Not,
+    mc.Tick,
+    mc.ShiftCoordinates,
+    mc.QubitCoordinates,
+    mc.MeasureReset,
+    mc.GateHXY,
+    mc.GateHYZ
+
 }
 
 
@@ -93,15 +113,65 @@ class Quantanium:
         """
         pass
 
+
+
+    @staticmethod
+    def unwrap(op):
+        """
+        Recursively unwraps a quantum operation to obtain its base (inner) gate.
+
+        This function handles common wrappers like:
+        - Power (e.g., S = Power(Z, 1/2))
+        - Control (e.g., Control(H))
+        - Inverse (e.g., Inverse(T))
+
+        Returns:
+            The innermost unwrapped gate/operation (e.g., GateZ).
+        """
+        seen = set()
+
+        while True:
+            if id(op) in seen:
+                # Prevent infinite loops in recursive wrappers
+                break
+            seen.add(id(op))
+
+            # Generic .get_operation() method
+            if hasattr(op, "get_operation"):
+                inner = op.get_operation()
+                if inner is not op:
+                    op = inner
+                    continue
+
+            # Power wrapper
+            if isinstance(op, mc.Power) and hasattr(op, "op"):
+                op = op.op
+                continue
+
+            # Inverse wrapper
+            if isinstance(op, mc.Inverse) and hasattr(op, "op"):
+                op = op.op
+                continue
+
+            # Control wrapper
+            if isinstance(op, mc.Control) and hasattr(op, "op"):
+                op = op.op
+                continue
+            break
+        return op
+
+
     def issupported(self, op: mc.Operation) -> bool:
         if type(op) in QUANTANIUM_SUPPORTED_OPERATIONS:
             return True
 
         if isinstance(op, mc.IfStatement):
             return self.issupported(op.get_operation())
+ 
+        op_name = self.unwrap(op)
+        if type(op_name) in QUANTANIUM_SUPPORTED_OPERATIONS:
+            return True
 
-        if isinstance(op, mc.Control):
-            return self.issupported(op.get_operation())
 
         if isinstance(op, mc.BondDim):
             raise ValueError(
@@ -199,14 +269,31 @@ class Quantanium:
         Raises:
             Exception: If there is an error in the conversion process.
         """
-        with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
-            try:
+        tmp_name = None
+        try:
+            # Create temp file, but don't delete it on close
+            with tempfile.NamedTemporaryFile(suffix=".pb", delete=False) as tmp:
+                # Write out the proto data
                 self._decompose_mimiq(mimiq_circuit).saveproto(tmp)
                 tmp.flush()
-                qua_circuit = ProtoParser().load_proto(tmp.name)
-            except Exception as e:
-                raise Exception(f"Error converting mimiq::Circuit to Circuit: {e}")
+                tmp_name = tmp.name   # capture path
+
+            # Now that tmp is closed (and unlocked), we can reopen it
+            qua_circuit = ProtoParser().load_proto(tmp_name)
+        except Exception as e:
+            # Propagate with your custom message
+            raise Exception(f"Error converting mimiq::Circuit to Circuit: {e}")
+
+        finally:
+            # Clean up the file if it exists
+            if tmp_name and os.path.exists(tmp_name):
+                try:
+                    os.remove(tmp_name)
+                except OSError:
+                    pass
+
         return qua_circuit
+
 
     def convert_qua_to_mimiq_circuit(self, qua_circuit: Circuit) -> MimiqCircuit:
         """
@@ -221,15 +308,32 @@ class Quantanium:
         Raises:
             Exception: If there is an error in the conversion process.
         """
-        with tempfile.NamedTemporaryFile(suffix=".pb", delete=True) as tmp:
-            try:
-                pp = ProtoParser()    
+        tmp_name = None
+        try:
+            # Create a temp file but don’t delete on close, so we can reopen it
+            with tempfile.NamedTemporaryFile(suffix=".pb", delete=False) as tmp:
+                pp = ProtoParser()
+                # Save the proto to the path
                 pp.save_proto(tmp.name, qua_circuit)
-                mimiq_circuit = MimiqCircuit()
-                mimiq_circuit = mimiq_circuit.loadproto(tmp)
-            except Exception as e:
-                raise Exception(f"Error converting Circuit to mimiq::Circuit: {e}")
+                tmp_name = tmp.name
+
+            # Now the file is closed and unlocked, we can load it
+            mimiq_circuit = MimiqCircuit()
+            mimiq_circuit = mimiq_circuit.loadproto(tmp_name)
+
+        except Exception as e:
+            raise Exception(f"Error converting Circuit to mimiq::Circuit: {e}")
+
+        finally:
+            # Clean up the temporary file
+            if tmp_name and os.path.exists(tmp_name):
+                try:
+                    os.remove(tmp_name)
+                except OSError:
+                    pass
+
         return mimiq_circuit
+
     
     def parse_qasm(self, qasm_file: str) -> MimiqCircuit:
         """

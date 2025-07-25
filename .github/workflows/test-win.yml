@@ -1,0 +1,133 @@
+name: Test on Windows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  windows-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install quantanium
+      - run: pip show quantanium
+
+
+      # - name: Scan quantanium.libs for missing dependencies
+      #   shell: powershell
+      #   run: |
+      #     $script = @'
+      #     import os, importlib.util, ctypes, sys
+
+      #     spec = importlib.util.find_spec("quantanium")
+      #     pkg_dir = os.path.dirname(spec.origin)
+      #     dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
+
+      #     print("Scanning DLLs in:", dll_dir, "\n")
+      #     if not os.path.isdir(dll_dir):
+      #         print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
+      #         sys.exit(1)
+
+      #     for fn in sorted(os.listdir(dll_dir)):
+      #         if not fn.lower().endswith(".dll"):
+      #             continue
+      #         path = os.path.join(dll_dir, fn)
+      #         try:
+      #             ctypes.WinDLL(path)
+      #             print(f"{fn} loaded successfully")
+      #         except Exception as e:
+      #             print(f"{fn} failed: {e}")
+      #     '@
+
+      #         # pipe the Python script into stdin
+      #         $script | python -
+
+      - name: Scan quantanium.libs for missing imports
+        shell: powershell
+        run: |
+          pip install --upgrade pefile
+
+          $script = @'
+          import os, importlib.util, sys
+          import pefile
+
+          # locate quantanium.libs
+          spec = importlib.util.find_spec("quantanium")
+          pkg_dir = os.path.dirname(spec.origin)
+          dll_dir = os.path.abspath(os.path.join(pkg_dir, os.pardir, "quantanium.libs"))
+
+          print("Scanning DLLs in:", dll_dir, "\n")
+          if not os.path.isdir(dll_dir):
+              print(f"quantanium.libs not found at {dll_dir!r}", file=sys.stderr)
+              sys.exit(1)
+
+          for fn in sorted(os.listdir(dll_dir)):
+              if not fn.lower().endswith(".dll"):
+                  continue
+              path = os.path.join(dll_dir, fn)
+              print(f"--- {fn} ---")
+              try:
+                  pe = pefile.PE(path, fast_load=True)
+                  pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_IMPORT"]])
+                  imports = sorted({entry.dll.decode('utf-8', errors='ignore') for entry in pe.DIRECTORY_ENTRY_IMPORT})
+                  print("Imports:", imports)
+              except Exception as e:
+                  print("Failed to parse with pefile:", e)
+              print()
+          '@
+
+          # pipe the Python script into stdin
+          $script | python -
+
+
+      - run: python -c "import quantanium; print('It works!')"
+      
+      - name: Run test example quantanium + mimiqcircuits
+        shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8   
+        run: |
+          @"
+          import sys
+          from quantanium.Quantanium import Quantanium
+          from mimiqcircuits import Circuit as MimiqCircuit
+          from mimiqcircuits import *
+
+          sys.stdout.reconfigure(encoding='utf-8')
+
+          processor = Quantanium()
+          mimiq_circuit = MimiqCircuit()
+          mimiq_circuit.push(GateH(), 0)
+          mimiq_circuit.push(GateCX(), 0, range(2, 4))
+
+          results = processor.execute(mimiq_circuit, nsamples=100, seed=1)
+          print("Results:", results)
+          "@ | Out-File -FilePath example_test.py -Encoding utf8
+
+          python example_test.py
+
+# name: Test on Windows
+
+# on:
+#   workflow_dispatch:
+
+
+# jobs:
+#   windows-test:
+#     runs-on: windows-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.11'
+      
+#       # - run: choco install vcredist140 -y   
+#       # - run: pip install msvc-runtime
+#       - run: pip install quantanium
+#       - run: pip show quantanium
+#       #- run: python -c "import os,importlib.util; spec=importlib.util.find_spec('quantanium'); pkg_dir=os.path.dirname(spec.origin); dll_dir=os.path.abspath(os.path.join(pkg_dir, os.pardir, 'quantanium.libs')); assert os.path.isdir(dll_dir), f'quantanium.libs not found at {dll_dir!r}'; os.add_dll_directory(dll_dir); import quantanium; print('It works!')"
+#       - run: python -c "import quantanium; print('It works!')"
