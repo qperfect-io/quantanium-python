@@ -48,16 +48,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-            arch: AMD64
-          - os: ubuntu-latest
-            arch: x86_64
-          - os: macos-13
-            arch: x86_64
+          # - os: windows-latest
+          #   arch: AMD64
+          # - os: ubuntu-latest
+          #   arch: x86_64
+          # - os: macos-13
+          #   arch: x86_64
           - os: macos-13-xlarge
             arch: arm64
-          - os: macos-14
-            arch: arm64
+          # - os: macos-14
+          #   arch: arm64
 
  
     steps:
@@ -119,7 +119,7 @@ jobs:
       env:
         CIBW_ENABLE: cpython-prerelease
         CIBW_SKIP: cp*-musllinux* cp*-win_arm64*
-        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
+        CIBW_BUILD: "cp39-*" # cp310-* cp311-* cp312-* cp313-*"
         CIBW_BUILD_VERBOSITY: 3
         CIBW_ARCHS_WINDOWS: AMD64 #auto ARM64
         CIBW_ARCHS_LINUX: x86_64 #"auto aarch64" #x86_64 # On an Linux Intel runner, build Intel and ARM wheels
@@ -129,9 +129,9 @@ jobs:
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
     
-        # CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
-        #   pip install delocate
-        #   delocate-wheel -w {dest_dir} -v -L /Users/runner/protobuf/lib   {wheel}
+        CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
+          pip install delocate
+          DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib delocate-wheel -w {dest_dir} -v {wheel}
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
         CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
@@ -232,5 +232,20 @@ jobs:
         path: wheelhouse/*.whl
 
 
+
+
+- name: Install and test built wheel
+  if: startsWith(matrix.os, 'macos')
+  run: |
+    echo "== Listing wheelhouse =="
+    ls -lh wheelhouse/
+
+    WHEEL=$(ls wheelhouse/quantanium-*.whl | head -n 1)
+    echo "Installing $WHEEL..."
+    python3 -m pip install "$WHEEL"
+
+    echo "Testing Python import..."
+    python3 -c "import quantanium; print('quantanium import OK')"
+    python3 -c "import quantanium._core; print('quantanium._core import OK')"
 
 
