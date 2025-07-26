@@ -131,7 +131,7 @@ jobs:
     
         CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
           pip install delocate
-          delocate-wheel -w {dest_dir} {wheel}
+          delocate-wheel -w {dest_dir} -v -L /usr/local/lib {wheel}
         CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
         CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
       # CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf3' || '' }}
@@ -166,7 +166,9 @@ jobs:
                 -Dprotobuf_INSTALL=ON \
                 -DCMAKE_INSTALL_LIBDIR=lib
             make -j2
-            sudo make install
+            make install
+
+   
           
             brew install boost
             brew link --force boost
