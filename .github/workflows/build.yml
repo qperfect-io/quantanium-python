@@ -231,6 +231,17 @@ jobs:
         name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
         path: wheelhouse/*.whl
 
+    - name: Test installed wheel on macOS
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        echo "== Wheelhouse contents =="
+        ls -lh wheelhouse/
 
+        WHEEL=$(ls wheelhouse/quantanium-*.whl | head -n 1)
+        echo "== Installing $WHEEL =="
+        pip install "$WHEEL"
+
+        echo "== Import test =="
+        python -c "import quantanium; print('Import OK')"
 
 
