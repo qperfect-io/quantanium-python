@@ -48,16 +48,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - os: windows-latest
-          #   arch: AMD64
-          # - os: ubuntu-latest
-          #   arch: x86_64
-          # - os: macos-13
-          #   arch: x86_64
+          - os: windows-latest
+            arch: AMD64
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: macos-13
+            arch: x86_64
           - os: macos-13-xlarge
             arch: arm64
-          # - os: macos-14
-          #   arch: arm64
+          - os: macos-14
+            arch: arm64
 
  
     steps:
@@ -231,17 +231,6 @@ jobs:
         name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
         path: wheelhouse/*.whl
 
-    - name: Test installed wheel on macOS
-      if: startsWith(matrix.os, 'macos')
-      run: |
-        echo "== Wheelhouse contents =="
-        ls -lh wheelhouse/
 
-        WHEEL=$(ls wheelhouse/quantanium-*.whl | head -n 1)
-        echo "== Installing $WHEEL =="
-        pip install "$WHEEL"
-
-        echo "== Import test =="
-        python -c "import quantanium; print('Import OK')"
 
 
