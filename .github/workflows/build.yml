@@ -234,18 +234,18 @@ jobs:
 
 
 
-- name: Install and test built wheel
-  if: startsWith(matrix.os, 'macos')
-  run: |
-    echo "== Listing wheelhouse =="
-    ls -lh wheelhouse/
+    - name: Install and test built wheel
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        echo "== Listing wheelhouse =="
+        ls -lh wheelhouse/
 
-    WHEEL=$(ls wheelhouse/quantanium-*.whl | head -n 1)
-    echo "Installing $WHEEL..."
-    python3 -m pip install "$WHEEL"
+        WHEEL=$(ls wheelhouse/quantanium-*.whl | head -n 1)
+        echo "Installing $WHEEL..."
+        python3 -m pip install "$WHEEL"
 
-    echo "Testing Python import..."
-    python3 -c "import quantanium; print('quantanium import OK')"
-    python3 -c "import quantanium._core; print('quantanium._core import OK')"
+        echo "Testing Python import..."
+        python3 -c "import quantanium; print('quantanium import OK')"
+        python3 -c "import quantanium._core; print('quantanium._core import OK')"
 
 
