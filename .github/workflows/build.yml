@@ -48,16 +48,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-            arch: AMD64
-          - os: ubuntu-latest
-            arch: x86_64
-          - os: macos-13
-            arch: x86_64
+          # - os: windows-latest
+          #   arch: AMD64
+          # - os: ubuntu-latest
+          #   arch: x86_64
+          # - os: macos-13
+          #   arch: x86_64
           - os: macos-13-xlarge
             arch: arm64
-          - os: macos-14
-            arch: arm64
+          # - os: macos-14
+          #   arch: arm64
 
  
     steps:
@@ -179,10 +179,10 @@ jobs:
             mkdir -p "$WHEEL_LIBS_DIR"
 
             cp /Users/runner/protobuf/lib/libprotobuf*.dylib "$WHEEL_LIBS_DIR"
-            cp $(brew --prefix libomp)/lib/libomp.dylib "$WHEEL_LIBS_DIR"
-            cp $(brew --prefix boost)/lib/libboost_*.dylib "$WHEEL_LIBS_DIR"
-            cp $(brew --prefix llvm)/lib/libc++.dylib "$WHEEL_LIBS_DIR" || true
-            cp $(brew --prefix llvm)/lib/libc++abi.dylib "$WHEEL_LIBS_DIR" || true
+            # cp $(brew --prefix libomp)/lib/libomp.dylib "$WHEEL_LIBS_DIR"
+            # cp $(brew --prefix boost)/lib/libboost_*.dylib "$WHEEL_LIBS_DIR"
+            # cp $(brew --prefix llvm)/lib/libc++.dylib "$WHEEL_LIBS_DIR" || true
+            # cp $(brew --prefix llvm)/lib/libc++abi.dylib "$WHEEL_LIBS_DIR" || true
 
             export BOOST_ROOT=$(brew --prefix boost)
             export CXXFLAGS="-I$BOOST_ROOT/include"
