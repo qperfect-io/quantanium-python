@@ -175,8 +175,12 @@ jobs:
             brew list
 
             mkdir -p /tmp/wheel-libs
-            cp /Users/runner/protobuf/lib/*.dylib /tmp/wheel-libs/
-            cp $(brew --prefix)/lib/*.dylib /tmp/wheel-libs/
+
+            cp /Users/runner/protobuf/lib/libprotobuf*.dylib /tmp/wheel-libs/
+            cp $(brew --prefix libomp)/lib/libomp.dylib /tmp/wheel-libs/
+            cp $(brew --prefix boost)/lib/libboost_*.dylib /tmp/wheel-libs/
+            cp $(brew --prefix llvm)/lib/libc++.dylib /tmp/wheel-libs/ || true
+            cp $(brew --prefix llvm)/lib/libc++abi.dylib /tmp/wheel-libs/ || true
 
             export BOOST_ROOT=$(brew --prefix boost)
             export CXXFLAGS="-I$BOOST_ROOT/include"
