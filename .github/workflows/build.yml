@@ -131,7 +131,7 @@ jobs:
     
         CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
           pip install delocate
-          delocate-wheel -w {dest_dir} -v      -L /Users/runner/protobuf/lib --ignore-missing-dependencies  {wheel}
+          delocate-wheel -w {dest_dir} -v -L /Users/runner/protobuf/lib   -L /opt/homebrew/opt/libomp/lib {wheel}
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
         CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
@@ -156,11 +156,13 @@ jobs:
             #brew uninstall protobuf
             git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
             cd protobuf
-
+            LIBOMP_PREFIX=$(brew --prefix libomp)
             git submodule update --init --recursive
             mkdir build && cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf \
+                -DCMAKE_CXX_FLAGS="-I$LIBOMP_PREFIX/include" \
+                -DCMAKE_EXE_LINKER_FLAGS="-L$LIBOMP_PREFIX/lib" \
                 -DBUILD_SHARED_LIBS=ON \
                 -Dprotobuf_BUILD_TESTS=OFF \
                 -Dprotobuf_BUILD_PROTOC_BINARIES=ON \
