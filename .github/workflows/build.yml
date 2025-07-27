@@ -142,6 +142,7 @@ jobs:
           unzip "$WHEEL_PATH" -d "$WHEELDIR/unpacked"
 
           echo "== Copying libprotobuf.dylib into wheel directory =="
+          ls /Users/runner/protobuf/lib/
           mkdir -p "$WHEELDIR/unpacked/.dylibs"
           cp /Users/runner/protobuf/lib/libprotobuf.dylib "$WHEELDIR/unpacked/.dylibs/"
 
@@ -191,6 +192,7 @@ jobs:
             git submodule update --init --recursive
             mkdir build && cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release \
+                -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf 
             make -j2
             make install
