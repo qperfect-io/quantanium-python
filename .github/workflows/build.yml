@@ -131,33 +131,36 @@ jobs:
     
 
         CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
-          pip install delocate
+          pip install delocate[cli]
 
-          echo "== Unpacking wheel =="
+          echo "== Patching @rpath for libprotobuf.dylib before delocate =="
+
           WHEEL_PATH="{wheel}"
           WHEEL_NAME=$(basename "$WHEEL_PATH")
           WHEELDIR=$(mktemp -d)
-          FIXED_WHEEL="$WHEELDIR/patched-$WHEEL_NAME"
 
-          unzip "$WHEEL_PATH" -d "$WHEELDIR/unpacked"
+          unzip "$WHEEL_PATH" -d "$WHEELDIR"
+
+          find "$WHEELDIR" -name '_core.cpython-*.so' | while read sofile; do
+            echo "Patching $sofile"
+            install_name_tool -change /Users/runner/protobuf/lib/libprotobuf.dylib @rpath/libprotobuf.dylib "$sofile"
+            otool -L "$sofile"
+          done
 
           echo "== Copying libprotobuf.dylib into wheel directory =="
-          ls /Users/runner/protobuf/lib/
-          mkdir -p "$WHEELDIR/unpacked/.dylibs"
-          cp /Users/runner/protobuf/lib/libprotobuf.dylib "$WHEELDIR/unpacked/.dylibs/"
+          mkdir -p "$WHEELDIR/quantanium/.dylibs"
+          cp /Users/runner/protobuf/lib/libprotobuf*.dylib "$WHEELDIR/quantanium/.dylibs"
 
           echo "== Repacking wheel =="
-          pushd "$WHEELDIR/unpacked" >/dev/null
-          zip -r "$FIXED_WHEEL" . >/dev/null
+          pushd "$WHEELDIR" >/dev/null
+          zip -r "../$WHEEL_NAME" *
           popd >/dev/null
 
           echo "== Forcing delocate to include libprotobuf.dylib =="
-          delocate-add-dylib \
-            -L /Users/runner/protobuf/lib/libprotobuf.dylib \
-            -w {dest_dir} \
-            "$FIXED_WHEEL"
+          delocate-add-dylib /Users/runner/protobuf/lib/libprotobuf.dylib -w {dest_dir} -v "../$WHEEL_NAME"
 
           echo "== Done =="
+
 
 
 
