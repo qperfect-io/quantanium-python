@@ -130,7 +130,6 @@ jobs:
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
     
 
-
         CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
           pip install 'delocate'
 
@@ -142,7 +141,7 @@ jobs:
 
           unzip "$WHEEL_PATH" -d "$WHEELDIR"
 
-          # Patch .so to use @rpath instead of absolute path
+          # Patch .so to use @rpath
           find "$WHEELDIR" -name '_core.cpython-*.so' | while read sofile; do
             echo "Patching $sofile"
             install_name_tool -change /Users/runner/protobuf/lib/libprotobuf.dylib @rpath/libprotobuf.dylib "$sofile"
@@ -158,10 +157,14 @@ jobs:
           zip -r "../$WHEEL_NAME" *
           popd >/dev/null
 
+          # Use full path to repacked wheel
+          WHEEL_REPACKED_PATH="$(dirname "$WHEELDIR")/$WHEEL_NAME"
+
           echo "== Running delocate to fix and bundle dylibs =="
-          delocate-wheel -w {dest_dir} -v "../$WHEEL_NAME"
+          DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib delocate-wheel -w {dest_dir} -v "$WHEEL_REPACKED_PATH"
 
           echo "== Done =="
+
 
 
 
