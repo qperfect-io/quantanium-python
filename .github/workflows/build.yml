@@ -272,7 +272,7 @@ jobs:
   
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH="/Users/runner/protobuf CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH="/Users/runner/protobuf" CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
 
       
      
