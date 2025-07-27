@@ -198,6 +198,14 @@ jobs:
             export DYLD_LIBRARY_PATH="/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH" &&
             export CMAKE_PREFIX_PATH="/Users/runner/protobuf" &&
             protoc --version
+            echo "== Fixing @rpath for libprotobuf.dylib in _core.so =="
+
+            find build -name "_core.cpython-*.so" | while read sofile; do
+              echo "Patching $sofile"
+              install_name_tool -change /Users/runner/protobuf/lib/libprotobuf.dylib @rpath/libprotobuf.dylib "$sofile"
+            done
+
+            echo "== Done patching =="
             echo "--------------------END DEBUG --------------------------"	
             set +x
         
