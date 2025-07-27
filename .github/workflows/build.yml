@@ -252,7 +252,8 @@ jobs:
 
             export BOOST_ROOT=$(brew --prefix boost)
             export CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf/include"
-            export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf/lib"
+            export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf/lib -lprotobuf"
+            echo "LDFLAGS=-L$BOOST_ROOT/lib -L/Users/runner/protobuf/lib -lprotobuf" >> $GITHUB_ENV
             DETECTED_ARCH=$(uname -m)
             echo "Detected architecture: $DETECTED_ARCH"
             export PATH="/Users/runner/protobuf/bin:$PATH" &&
@@ -299,7 +300,7 @@ jobs:
   
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH="/Users/runner/protobuf" CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -lprotobuf -L$(brew --prefix boost)/lib" 
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH="/Users/runner/protobuf" CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
 
       
      
