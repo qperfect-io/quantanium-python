@@ -168,8 +168,10 @@ jobs:
 
 
 
-        CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-          DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH delocate-listdeps {wheel} &&
+        CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
+          brew install unzip || true
+          pip install delocate
+          DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH delocate-listdeps {wheel}
           DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH delocate-wheel -w {dest_dir} {wheel}
           WHEEL_PATH="{wheel}"
           WHEEL_NAME=$(basename "$WHEEL_PATH")
