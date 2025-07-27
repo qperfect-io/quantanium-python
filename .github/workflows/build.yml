@@ -148,22 +148,18 @@ jobs:
             otool -L "$sofile"
           done
 
-          echo "== Copying libprotobuf.dylib into .dylibs =="
-          mkdir -p "$WHEELDIR/quantanium/.dylibs"
-          cp /Users/runner/protobuf/lib/libprotobuf*.dylib "$WHEELDIR/quantanium/.dylibs"
-
           echo "== Repacking wheel =="
           pushd "$WHEELDIR" >/dev/null
           zip -r "../$WHEEL_NAME" *
           popd >/dev/null
 
-          # Use full path to repacked wheel
           WHEEL_REPACKED_PATH="$(dirname "$WHEELDIR")/$WHEEL_NAME"
 
           echo "== Running delocate to fix and bundle dylibs =="
           DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib delocate-wheel -w {dest_dir} -v "$WHEEL_REPACKED_PATH"
 
           echo "== Done =="
+
 
 
 
