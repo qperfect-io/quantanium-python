@@ -135,9 +135,11 @@ jobs:
 
           echo "== Patching @rpath for libprotobuf.dylib before delocate =="
 
+          WHEEL_PATH="{wheel}"
+          WHEEL_NAME=$(basename "$WHEEL_PATH")
           WHEELDIR=$(mktemp -d)
-          WHL=$(ls {wheel})
-          unzip "$WHL" -d "$WHEELDIR"
+
+          unzip "$WHEEL_PATH" -d "$WHEELDIR"
 
           find "$WHEELDIR" -name '_core.cpython-*.so' | while read sofile; do
             echo "Patching $sofile"
@@ -145,12 +147,14 @@ jobs:
             otool -L "$sofile"
           done
 
-          echo "== Repacking and repairing =="
-          pushd "$WHEELDIR"
-          zip -r fixed_wheel.whl *
-          popd
+          echo "== Repacking =="
+          pushd "$WHEELDIR" >/dev/null
+          zip -r "../$WHEEL_NAME" *
+          popd >/dev/null
 
-          delocate-wheel -w {dest_dir} -v "$WHEELDIR/fixed_wheel.whl"
+          echo "== Delocate =="
+          delocate-wheel -w {dest_dir} -v "../$WHEEL_NAME"
+
 
 
         # CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
