@@ -130,21 +130,52 @@ jobs:
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
     
 
-        CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
-          pip install 'delocate'
+        # CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
+        #   pip install 'delocate'
 
-          echo "== Patching @rpath for libprotobuf.dylib before delocate =="
+        #   echo "== Patching @rpath for libprotobuf.dylib before delocate =="
+
+        #   WHEEL_PATH="{wheel}"
+        #   WHEEL_NAME=$(basename "$WHEEL_PATH")
+        #   WHEELDIR=$(mktemp -d)
+
+        #   unzip "$WHEEL_PATH" -d "$WHEELDIR"
+
+        #   # Patch .so to use @rpath
+        #   find "$WHEELDIR" -name '_core.cpython-*.so' | while read sofile; do
+        #     echo "Patching $sofile"
+        #     install_name_tool -change /Users/runner/protobuf/lib/libprotobuf.dylib @rpath/libprotobuf.dylib "$sofile"
+        #     otool -L "$sofile"
+        #   done
+
+        #   echo "== Repacking wheel =="
+        #   pushd "$WHEELDIR" >/dev/null
+        #   zip -r "../$WHEEL_NAME" *
+        #   popd >/dev/null
+
+        #   WHEEL_REPACKED_PATH="$(dirname "$WHEELDIR")/$WHEEL_NAME"
+
+        #   echo "== Running delocate to fix and bundle dylibs =="
+        #   DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib delocate-wheel -w {dest_dir} -v "$WHEEL_REPACKED_PATH"
+
+        #   echo "== Done =="
+
+        CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
+          brew install unzip || true
+          pip install delocate
 
           WHEEL_PATH="{wheel}"
           WHEEL_NAME=$(basename "$WHEEL_PATH")
           WHEELDIR=$(mktemp -d)
 
+          echo "== Unzipping wheel =="
           unzip "$WHEEL_PATH" -d "$WHEELDIR"
 
-          # Patch .so to use @rpath
+          echo "== Adding @rpath manually =="
           find "$WHEELDIR" -name '_core.cpython-*.so' | while read sofile; do
-            echo "Patching $sofile"
-            install_name_tool -change /Users/runner/protobuf/lib/libprotobuf.dylib @rpath/libprotobuf.dylib "$sofile"
+            echo "Fixing $sofile"
+            # Add the protobuf path as an rpath so @rpath/libprotobuf.dylib will be found
+            install_name_tool -add_rpath /Users/runner/protobuf/lib "$sofile" || true
             otool -L "$sofile"
           done
 
@@ -155,11 +186,8 @@ jobs:
 
           WHEEL_REPACKED_PATH="$(dirname "$WHEELDIR")/$WHEEL_NAME"
 
-          echo "== Running delocate to fix and bundle dylibs =="
+          echo "== Running delocate to bundle libprotobuf.dylib =="
           DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib delocate-wheel -w {dest_dir} -v "$WHEEL_REPACKED_PATH"
-
-          echo "== Done =="
-
 
 
 
@@ -203,8 +231,7 @@ jobs:
             echo "---------------------DEBUG------------------------------"
             brew update
             brew install gcc llvm libomp 
-            brew install protobuf
-            brew link --force protobuf
+   
           
             git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
             cd protobuf
