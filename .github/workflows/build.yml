@@ -130,8 +130,9 @@ jobs:
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
     
 
+
         CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
-          pip install 'delocate[cli]'
+          pip install 'delocate'
 
           echo "== Patching @rpath for libprotobuf.dylib before delocate =="
 
@@ -141,14 +142,14 @@ jobs:
 
           unzip "$WHEEL_PATH" -d "$WHEELDIR"
 
-          # Patch all .so files
+          # Patch .so to use @rpath instead of absolute path
           find "$WHEELDIR" -name '_core.cpython-*.so' | while read sofile; do
             echo "Patching $sofile"
             install_name_tool -change /Users/runner/protobuf/lib/libprotobuf.dylib @rpath/libprotobuf.dylib "$sofile"
             otool -L "$sofile"
           done
 
-          echo "== Copying libprotobuf.dylib into wheel =="
+          echo "== Copying libprotobuf.dylib into .dylibs =="
           mkdir -p "$WHEELDIR/quantanium/.dylibs"
           cp /Users/runner/protobuf/lib/libprotobuf*.dylib "$WHEELDIR/quantanium/.dylibs"
 
@@ -157,10 +158,11 @@ jobs:
           zip -r "../$WHEEL_NAME" *
           popd >/dev/null
 
-          echo "== Forcing delocate to include libprotobuf.dylib =="
-          python3 -m delocate.cmd.delocate_add_dylib /Users/runner/protobuf/lib/libprotobuf.dylib -w {dest_dir} -v "../$WHEEL_NAME"
+          echo "== Running delocate to fix and bundle dylibs =="
+          delocate-wheel -w {dest_dir} -v "../$WHEEL_NAME"
 
           echo "== Done =="
+
 
 
 
