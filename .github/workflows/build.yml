@@ -131,7 +131,7 @@ jobs:
     
 
         CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
-          pip install delocate[cli]
+          pip install 'delocate[cli]'
 
           echo "== Patching @rpath for libprotobuf.dylib before delocate =="
 
@@ -144,22 +144,23 @@ jobs:
           find "$WHEELDIR" -name '_core.cpython-*.so' | while read sofile; do
             echo "Patching $sofile"
             install_name_tool -change /Users/runner/protobuf/lib/libprotobuf.dylib @rpath/libprotobuf.dylib "$sofile"
-            otool -L "$sofile"
           done
 
-          echo "== Copying libprotobuf.dylib into wheel directory =="
+          echo "== Copying libprotobuf.dylib into wheel =="
           mkdir -p "$WHEELDIR/quantanium/.dylibs"
           cp /Users/runner/protobuf/lib/libprotobuf*.dylib "$WHEELDIR/quantanium/.dylibs"
 
-          echo "== Repacking wheel =="
+          echo "== Repacking =="
           pushd "$WHEELDIR" >/dev/null
           zip -r "../$WHEEL_NAME" *
           popd >/dev/null
 
           echo "== Forcing delocate to include libprotobuf.dylib =="
+          which delocate-add-dylib || echo "delocate-add-dylib not found"
           delocate-add-dylib /Users/runner/protobuf/lib/libprotobuf.dylib -w {dest_dir} -v "../$WHEEL_NAME"
 
           echo "== Done =="
+
 
 
 
