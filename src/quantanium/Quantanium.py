@@ -8,37 +8,14 @@ import time
 import tempfile
 import platform
 
-# if platform.system() == "Windows":
-#     package_dir = os.path.dirname(__file__)  
-#     dll_dir = os.path.abspath(
-#         os.path.join(package_dir, os.pardir, "quantanium.libs")
-#     )
-#     if not os.path.isdir(dll_dir):
-#         raise FileNotFoundError(f"quantanium.libs not found at {dll_dir!r}")
-#     os.add_dll_directory(dll_dir)
-
-
 if platform.system() == "Windows":
-    package_dir = os.path.dirname(__file__)
+    package_dir = os.path.dirname(__file__)  
     dll_dir = os.path.abspath(
         os.path.join(package_dir, os.pardir, "quantanium.libs")
     )
     if not os.path.isdir(dll_dir):
         raise FileNotFoundError(f"quantanium.libs not found at {dll_dir!r}")
     os.add_dll_directory(dll_dir)
-
-elif platform.system() == "Darwin":
-    # Preload required .dylibs (e.g., libprotobuf.dylib)
-    dylib_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '.dylibs'))
-    libprotobuf = os.path.join(dylib_dir, 'libprotobuf.dylib')
-    if os.path.exists(libprotobuf):
-        try:
-            import ctypes
-            ctypes.CDLL(libprotobuf, mode=ctypes.RTLD_GLOBAL)
-        except OSError as e:
-            raise ImportError(f"Could not load {libprotobuf}: {e}")
-
-
 from ._core import (
     Circuit,
     ProtoParser,
