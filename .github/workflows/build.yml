@@ -171,8 +171,8 @@ jobs:
 
 
         #CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
-        CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf3' || '' }}
-        CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf3 -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf3/include -DProtobuf_LIBRARIES=/Users/runner/protobuf3/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf3/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf3' || '' }}
+        CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf' || '' }}
+        CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf' || '' }}
 
 
         CIBW_ENVIRONMENT_WINDOWS: |
@@ -216,7 +216,9 @@ jobs:
             export DYLD_LIBRARY_PATH="/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH" &&
             export CMAKE_PREFIX_PATH="/Users/runner/protobuf" &&
             protoc --version
-
+            echo "Checking protobuf version"
+            ls -l /Users/runner/protobuf3/include/google/protobuf/stubs/common.h
+            cat /Users/runner/protobuf3/include/google/protobuf/stubs/common.h | head -n 10
             echo "--------------------END DEBUG --------------------------"	
             set +x
         
