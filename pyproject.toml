@@ -4,12 +4,12 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "quantanium"
-version = "1.0.9"
+version = "1.0.10"
 authors = [{ name = "QPerfect", email = "anna.leonteva@qperfect.io" }]
 description = "Python wrapper for the MIMIQ Quantanium statevector engine."
 readme = "README.md"
 requires-python = " >= 3.9"
-dependencies = ["numpy"] #, "mimiqcircuits"]
+dependencies = ["numpy", "mimiqcircuits"]
 
 
 
