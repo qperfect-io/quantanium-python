@@ -47,7 +47,8 @@ class TestRNZIntegration(unittest.TestCase):
 
         result_orig = self.processor.execute(c_orig, nsamples=self.nsamples, seed=self.seed)
         result_decomp = self.processor.execute(c_decomp, nsamples=self.nsamples, seed=self.seed)
-
+        print(result_decomp)
+        print(result_orig)
         dist_orig = self.get_distribution(result_orig.cstates)
         dist_decomp = self.get_distribution(result_decomp.cstates)
 

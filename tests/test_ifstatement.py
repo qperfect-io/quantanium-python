@@ -61,10 +61,6 @@ class TestIfStatementIntegration(unittest.TestCase):
             f"Qubit mismatch: {instr_orig.qubits} vs {instr_restored.qubits}"
         )
 
-
-
-
-
 if __name__ == "__main__":
     unittest.main()
 
