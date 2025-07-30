@@ -49,11 +49,25 @@ PYBIND11_MODULE(_core, m) {
   py::class_<qua::from_proto::BitVector>(m, "BitVector")
       .def(py::init<size_t>()) // Constructor with number of qubits
       .def(py::init<
-           const std::string &>()); // Constructor with binary string
-                                    // .def_static("fromint",
-                                    // &qua::from_proto::BitString::fromint,
-  //             py::arg("num_qubits"), py::arg("value"), py::arg("endian") =
-  //             "big")
+           const std::string &>())
+    .def("print", &qua::from_proto::BitVector::Print) 
+    .def("__str__", [](const qua::from_proto::BitVector& bv) {
+        std::stringstream ss;
+        ss << "bs\"";
+        for (const auto& bit : bv.GetBits())
+            ss << bit;
+        ss << "\"";
+        return ss.str();
+    })
+    .def("__repr__", [](const qua::from_proto::BitVector& bv) {
+        std::stringstream ss;
+        ss << "<BitVector: bs\"";
+        for (const auto& bit : bv.GetBits())
+            ss << bit;
+        ss << "\">";
+        return ss.str();
+    });
+
 
   // Wrap std::complex for float and double
   py::class_<std::complex<float>>(m, "ComplexF32")
@@ -80,6 +94,7 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<>())
       .def(py::init<std::size_t>())
       .def("get_size", &qua::StateVector<double>::GetSize)
+      .def("get_cstates", &qua::StateVector<double>::GetCStates)
       .def("numqubits", &qua::StateVector<double>::NumQubits)
       .def("zerostate", &qua::StateVector<double>::SetInitialState)
       .def("get_real", &qua::StateVector<double>::GetReal)
@@ -152,6 +167,31 @@ PYBIND11_MODULE(_core, m) {
 
         return py::make_tuple(result, sv);
       });
+    
+    m.def("evolve",
+    [](
+        qua::from_proto::Circuit& circuit,
+        unsigned long              seed,
+        bool stop_before_measure) {
+        return qua::Evolve<double>(circuit, seed, stop_before_measure);  
+    },
+    py::arg("circuit"),
+    py::arg("seed"),
+    py::arg("stop_before_measure") = false);
+
+    m.def("evolve_next",
+    [](
+        qua::StateVector<double>& sv,
+        qua::from_proto::Circuit& circuit,
+        unsigned long              seed,
+        bool stop_before_measure) {
+        return qua::Evolve_next<double>(sv, circuit, seed, stop_before_measure);  
+    },
+    py::arg("sv"),
+    py::arg("circuit"),
+    py::arg("seed"),
+    py::arg("stop_before_measure") = false);
+      
   m.def("load_open_qasm", &qua::LoadOpenQASM);
 
   py::class_<qua::BaseOperationStrategy<double, 1>>(
