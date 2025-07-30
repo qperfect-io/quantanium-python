@@ -1,0 +1,26 @@
+name: Test on Ubuntu x86_64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ubuntu-test:
+    name: Test on Ubuntu (x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check Linux architecture
+        run: uname -m
+
+      - run: pip install quantanium
+      - run: pip show quantanium
+
+      - run: python3 -c "import quantanium; print('It works!')"
+
+      - run: pip install pytest
+      - run: pytest tests
