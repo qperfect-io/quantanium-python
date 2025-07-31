@@ -47,26 +47,20 @@ PYBIND11_MODULE(_core, m) {
   m.doc() = "pybind11 wrapper for Quantanium";
 
   py::class_<qua::from_proto::BitVector>(m, "BitVector")
-      .def(py::init<size_t>()) // Constructor with number of qubits
-      .def(py::init<
-           const std::string &>())
-    .def("print", &qua::from_proto::BitVector::Print) 
-    .def("__str__", [](const qua::from_proto::BitVector& bv) {
-        std::stringstream ss;
-        ss << "bs\"";
-        for (const auto& bit : bv.GetBits())
-            ss << bit;
-        ss << "\"";
-        return ss.str();
-    })
-    .def("__repr__", [](const qua::from_proto::BitVector& bv) {
-        std::stringstream ss;
-        ss << "<BitVector: bs\"";
-        for (const auto& bit : bv.GetBits())
-            ss << bit;
-        ss << "\">";
-        return ss.str();
-    });
+        .def(py::init<size_t>()) // Constructor with number of qubits
+        .def(py::init<
+           const std::string &>()) 
+        .def("print", &qua::from_proto::BitVector::Print) 
+        .def("__str__", [](const qua::from_proto::BitVector& bv) {
+            std::stringstream ss;
+            ss << bv;
+            return ss.str();
+        })
+        .def("__repr__", [](const qua::from_proto::BitVector& bv) {
+            std::stringstream ss;
+            ss << "<BitVector: " << bv << ">";
+            return ss.str();
+        });     
 
 
   // Wrap std::complex for float and double
