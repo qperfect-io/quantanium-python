@@ -465,7 +465,6 @@ class Quantanium:
 
             Args:
                 circuit: MimiqCircuit, QuaCircuit or str.
-                statevector (StateVectorF64 or None): Optional preallocated statevector.
                 stop_before_measure (bool): Whether to stop before measurement.
                 seed (int): Random seed (default = time.time()).
 

@@ -125,26 +125,7 @@ PYBIND11_MODULE(_core, m) {
       .def("save_proto", &qua::ProtoResult::SaveProto)
       .def("load_proto", &qua::ProtoResult::LoadProto);
 
-  // Wrapper for execute function
-  // m.def("execute_float", &qua::Execute<float>);
-  // m.def("execute_double", &qua::Execute_ext<double>);
-/*  m.def("execute_double",
-        [](qua::from_proto::Circuit &circuit, int shots, int seed,
-           std::vector<qua::from_proto::BitVector> &bitstrings) {
-          return qua::Execute_ext<double>(
-              circuit, static_cast<unsigned long>(shots),
-              static_cast<unsigned long>(seed), bitstrings);
-        });
-*/
-/*  m.def("execute_double",
-      [](qua::from_proto::Circuit &circuit, int shots, int seed,
-         std::vector<qua::from_proto::BitVector> &bitstrings) {
-        auto [result, sv] = qua::Execute_ext<double>(
-            circuit, static_cast<unsigned long>(shots),
-            static_cast<unsigned long>(seed), bitstrings);
-        return py::make_tuple(result, sv);
-      });
-*/
+
     m.def("execute_double",
       [](qua::from_proto::Circuit &circuit, int shots, int seed,
          std::vector<qua::from_proto::BitVector> &bitstrings) {
