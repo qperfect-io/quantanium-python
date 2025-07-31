@@ -20,7 +20,11 @@ from ._core import (
     Circuit,
     ProtoParser,
     ProtoResult,
+    StateVectorF64,
+    BitVector,
     execute_double,
+    evolve,
+    evolve_next,
     load_open_qasm,
 )
 from ._core import QCSResults as QuantaniumQCSResults
@@ -111,8 +115,9 @@ class Quantanium:
         """
         Initialize the MIMIQ Quantanium engine.
         """
-        pass
-
+        self._statevector = None
+        self._cplx = None
+        self._cstate = None
 
 
     @staticmethod
@@ -439,14 +444,69 @@ class Quantanium:
                 bs = [QuantaniumBitVector(bitstring.to01()) for bitstring in bitstrings]
 
             qua_result, sv = execute_double(qua_circuit, nsamples, seed, bs)
-            self._statevector = sv
+            self._cplx = sv
             result = self.convert_qua_results_to_mimiq_results(qua_result)
 
         except Exception as e:
             raise Exception(f"Error executing the Circuit: {e}")
 
         return result
-    
+
+
+
+    def evolve(
+            self,
+            circuit,
+            stop_before_measure=False,
+            seed=None,
+        ):
+            """
+            Evolve the given circuit, with or without a provided statevector.
+
+            Args:
+                circuit: MimiqCircuit, QuaCircuit or str.
+                stop_before_measure (bool): Whether to stop before measurement.
+                seed (int): Random seed (default = time.time()).
+
+            """
+            if isinstance(circuit, MimiqCircuit):
+                qua_circuit = self.convert_mimiq_to_qua_circuit(circuit)
+            elif isinstance(circuit, QuaCircuit):
+                qua_circuit = circuit
+            elif isinstance(circuit, str):
+                qua_circuit = self.convert_qasm_to_qua_circuit(circuit)
+            else:
+                raise TypeError("circuit must be MimiqCircuit, Circuit, or str")
+
+            if seed is None:
+                seed = time.time_ns()
+
+            try:
+                if self._statevector is not None:
+                    # Call evolve_next that modifies the given statevector in place
+                    self._statevector, sv_cplx = evolve_next(self._statevector, qua_circuit, seed, stop_before_measure)
+                    self._cplx = sv_cplx
+                     
+                else:
+                    # Call evolve that returns a new statevector
+                    self._statevector, sv_cplx = evolve(qua_circuit, seed, stop_before_measure)
+                    self._cplx = sv_cplx
+                  
+            except Exception as e:
+                raise RuntimeError(f"Error evolving the circuit: {e}")
+
+            return 
+
+    def zerostate(self):
+        """
+        Initializes the internal statevector to the zero state |00...0⟩.
+
+        Raises:
+            RuntimeError: If the internal statevector is not initialized.
+        """
+        if self._statevector is not None:    
+            self._statevector.zerostate()
+
     def get_statevector(self):
         """
         Returns the statevector from the last execution.
@@ -456,7 +516,18 @@ class Quantanium:
         """
         if not hasattr(self, "_statevector"):
             raise RuntimeError("Statevector is not available. Run 'execute' first.")
-        return self._statevector
+        return self._cplx #self._statevector
+
+    def get_cstate(self):
+        """
+        Returns the classical state from the last evolve.
+
+        Returns:
+            list: A list of classical states.
+        """
+        if not hasattr(self, "_statevector"):
+            raise RuntimeError("Statevector is not available. Run 'execute' first.")
+        return self._statevector.get_cstates() 
     
     def get_results(self, *args, **kwargs):
         raise RuntimeError("get_results is only available for remote execution.")
