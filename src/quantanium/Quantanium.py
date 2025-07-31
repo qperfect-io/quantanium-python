@@ -120,7 +120,6 @@ class Quantanium:
         self._cstate = None
 
 
-
     @staticmethod
     def unwrap(op):
         """
@@ -481,25 +480,34 @@ class Quantanium:
                 raise TypeError("circuit must be MimiqCircuit, Circuit, or str")
 
             if seed is None:
-                seed = int(time.time())
+                seed = time.time_ns()
 
             try:
                 if self._statevector is not None:
                     # Call evolve_next that modifies the given statevector in place
-                    sv, sv_cplx = evolve_next(self._statevector, qua_circuit, seed, stop_before_measure)
+                    self._statevector, sv_cplx = evolve_next(self._statevector, qua_circuit, seed, stop_before_measure)
                     self._cplx = sv_cplx
-                    self._statevector = sv
+                     
                 else:
                     # Call evolve that returns a new statevector
-                    sv, sv_cplx = evolve(qua_circuit, seed, stop_before_measure)
+                    self._statevector, sv_cplx = evolve(qua_circuit, seed, stop_before_measure)
                     self._cplx = sv_cplx
-                    self._statevector = sv
+                  
             except Exception as e:
                 raise RuntimeError(f"Error evolving the circuit: {e}")
 
             return 
 
-    
+    def zerostate(self):
+        """
+        Initializes the internal statevector to the zero state |00...0⟩.
+
+        Raises:
+            RuntimeError: If the internal statevector is not initialized.
+        """
+        if self._statevector is not None:    
+            self._statevector.zerostate()
+
     def get_statevector(self):
         """
         Returns the statevector from the last execution.
