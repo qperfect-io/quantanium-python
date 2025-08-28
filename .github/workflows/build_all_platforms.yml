@@ -1,0 +1,64 @@
+name: Build_All_Platforms
+
+on:
+  workflow_call:
+env:
+  FORCE_COLOR: 3
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  build_sdist:
+    name: Build SDist
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        token: ${{ secrets.QUANTANIUM_READ_PAT }}
+
+    - name: Install boost
+      uses: MarkusJx/install-boost@v2.4.5
+      id: install-boost
+      with:
+          # REQUIRED: Specify the required boost version
+          # A list of supported versions can be found here:
+          # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
+          boost_version: 1.86.0
+
+    - name: Build SDist
+      run: pipx run build --sdist
+
+    - name: Check metadata
+      run: pipx run twine check dist/*
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: cibw-sdist
+        path: dist/*.tar.gz
+
+  build_all_wheels:
+    needs: build_sdist
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            arch: AMD64
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: macos-13
+            arch: x86_64
+          - os: macos-13-xlarge
+            arch: arm64
+          - os: macos-14
+            arch: arm64
+
+    uses: ./.github/workflows/build_core.yml
+    with:
+      matrix_os: ${{ matrix.os }}
+      matrix_arch: ${{ matrix.arch }}
+      BOOST_ROOT: ${{ needs.build_sdist.steps.steps.install-boost.outputs.BOOST_ROOT }}
+    secrets: inherit

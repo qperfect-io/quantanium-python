@@ -1,65 +1,27 @@
-name: Wheels
+name: Build_Core
 
 on:
   workflow_call:
+    inputs:
+      matrix_os:
+        required: true
+        type: string
+      matrix_arch:
+        required: true
+        type: string
+      BOOST_ROOT:
+        required: true
+        type: string
 
 env:
   FORCE_COLOR: 3
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  build_sdist:
-    name: Build SDist
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        token: ${{ secrets.QUANTANIUM_READ_PAT }}
-
-    - name: Install boost
-      uses: MarkusJx/install-boost@v2.4.5
-      id: install-boost
-      with:
-          # REQUIRED: Specify the required boost version
-          # A list of supported versions can be found here:
-          # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
-          boost_version: 1.86.0
-
-    - name: Build SDist
-      run: pipx run build --sdist
-
-    - name: Check metadata
-      run: pipx run twine check dist/*
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: cibw-sdist
-        path: dist/*.tar.gz
-
 
   build_wheels:
-    name: Wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            arch: AMD64
-          - os: ubuntu-latest
-            arch: x86_64
-          - os: macos-13
-            arch: x86_64
-          - os: macos-13-xlarge
-            arch: arm64
-          - os: macos-14
-            arch: arm64
+    name: Wheels on ${{ inputs.matrix_os }}
+    runs-on: ${{ inputs.matrix_os }}
 
- 
     steps:
     - uses: actions/checkout@v4
       with:
@@ -77,17 +39,17 @@ jobs:
 
     - name: Install Boost (Cross-OS)
       run: |
-        if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+        if [[ "${{ inputs.matrix_os }}" == "ubuntu-latest" ]]; then
           sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
-        elif [[ "${{ matrix.os }}" == "macos-*" ]]; then
+        elif [[ "${{ inputs.matrix_os }}" == "macos-*" ]]; then
           brew install boost gcc llvm libomp 
-        # elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+        # elif [[ "${{ inputs.matrix_os }}" == "windows-latest" ]]; then
 
         fi
       shell: bash
 
     - name: Install Boost on Windows via vcpkg
-      if: matrix.os == 'windows-latest'
+      if: inputs.matrix_os == 'windows-latest'
       run: |
         if (Test-Path 'C:\vcpkg') {
           Remove-Item -Recurse -Force 'C:\vcpkg'
@@ -123,8 +85,8 @@ jobs:
         CIBW_BUILD_VERBOSITY: 3
         CIBW_ARCHS_WINDOWS: AMD64 #auto ARM64
         CIBW_ARCHS_LINUX: x86_64 #"auto aarch64" #x86_64 # On an Linux Intel runner, build Intel and ARM wheels
-        CIBW_ARCHS_MACOS: ${{ matrix.arch }}
-        CIBW_PLATFORM_TAG_MACOS: ${{ matrix.os == 'macos-14' && 'macosx_14_0' || 'macosx_13_0' }}
+        CIBW_ARCHS_MACOS: ${{ inputs.matrix_arch }}
+        CIBW_PLATFORM_TAG_MACOS: ${{ inputs.matrix_os == 'macos-14' && 'macosx_14_0' || 'macosx_13_0' }}
 
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
@@ -133,23 +95,23 @@ jobs:
 
 
 
-        #CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
-        #CMAKE_ARGS:                  ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf' || '' }}
-        #CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || (matrix.os == 'macos-13' || matrix.os == 'macos-14'|| matrix.os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf' || '' }}
+        #CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ inputs.matrix_os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
+        #CMAKE_ARGS:                  ${{ inputs.matrix_os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || (inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14'|| inputs.matrix_os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf' || '' }}
+        #CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ inputs.matrix_os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || (inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14'|| inputs.matrix_os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf' || '' }}
         CMAKE_ARGS: |
           ${{
-            (matrix.os == 'windows-latest' && 
+            (inputs.matrix_os == 'windows-latest' && 
               '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows') || 
-            ((matrix.os == 'macos-13' || matrix.os == 'macos-14' || matrix.os == 'macos-13-xlarge') && 
+            ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
               '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
             ''
           }}
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: |
           ${{
-            (matrix.os == 'windows-latest' && 
+            (inputs.matrix_os == 'windows-latest' && 
               '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows') || 
-            ((matrix.os == 'macos-13' || matrix.os == 'macos-14' || matrix.os == 'macos-13-xlarge') && 
+            ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
               '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
             ''
           }}
@@ -238,7 +200,7 @@ jobs:
   
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ steps.install-boost.outputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ matrix.os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH=/Users/runner/protobuf CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ inputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ inputs.matrix_os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH=/Users/runner/protobuf CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
 
       
      
@@ -250,14 +212,14 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
+        name: cibw-wheels-${{ inputs.matrix_os }}-${{ inputs.matrix_arch }}
         path: wheelhouse/*.whl
 
 
 
 
     # - name: Install and test built wheel
-    #   if: startsWith(matrix.os, 'macos')
+    #   if: startsWith(inputs.matrix_os, 'macos')
     #   run: |
     #     echo "== Listing wheelhouse =="
     #     ls -lh wheelhouse/
