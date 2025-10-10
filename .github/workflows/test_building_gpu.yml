@@ -1,20 +1,28 @@
-name: Build_All_Platforms
+name: Test_building_gpu
 
 on:
-  workflow_call:
+  workflow_dispatch:
 env:
   FORCE_COLOR: 3
-
+    
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: true 
 
 jobs:
 
   build_sdist:
     name: Build SDist
-    runs-on: ubuntu-latest
+    runs-on: LinuxGpu
     steps:
+    
+
+    - name: Install python && pipx
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip python3-venv pipx
+        pipx ensurepath
+
     - uses: actions/checkout@v4
       with:
         submodules: recursive
@@ -40,25 +48,17 @@ jobs:
         name: cibw-sdist
         path: dist/*.tar.gz
 
-  build_all_wheels:
+  build_gpu_ubuntu_wheels:
     needs: build_sdist
     strategy:
       matrix:
         include:
-          - os: windows-latest
-            arch: AMD64
-          - os: LinuxGPU # It is a company's github-hosted larger runner # - os: ubuntu-latest
+          - os: LinuxGPU
             arch: x86_64
-          - os: macos-13
-            arch: x86_64
-          - os: macos-13-xlarge
-            arch: arm64
-          - os: macos-14
-            arch: arm64
 
     uses: ./.github/workflows/build_core.yml
     with:
       matrix_os: ${{ matrix.os }}
       matrix_arch: ${{ matrix.arch }}
-      BOOST_ROOT: ${{ needs.build_sdist.steps.steps.install-boost.outputs.BOOST_ROOT }}
+      BOOST_ROOT: ${{ needs.build_sdist.steps.install-boost.outputs.BOOST_ROOT }}
     secrets: inherit

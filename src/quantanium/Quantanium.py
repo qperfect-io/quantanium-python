@@ -7,6 +7,16 @@ import os
 import time
 import tempfile
 import platform
+import ctypes
+
+def _has_cuda_runtime():
+    try:
+        ctypes.CDLL("libcuda.so")
+        return True
+    except OSError:
+        return False
+
+HAS_CUDA = _has_cuda_runtime()
 
 if platform.system() == "Windows":
     package_dir = os.path.dirname(__file__)  
@@ -20,9 +30,7 @@ from ._core import (
     Circuit,
     ProtoParser,
     ProtoResult,
-    StateVectorF64,
     BitVector,
-    execute_double,
     evolve,
     evolve_next,
     load_open_qasm,
@@ -111,10 +119,13 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
 
 
 class Quantanium:
-    def __init__(self):
+    def __init__(self, use_gpu: bool = False):
         """
         Initialize the MIMIQ Quantanium engine.
         """
+        if use_gpu and not HAS_CUDA:
+            raise RuntimeError("CUDA requested but not available on this system.")
+        self.use_gpu = use_gpu and HAS_CUDA
         self._statevector = None
         self._cplx = None
         self._cstate = None
@@ -426,6 +437,11 @@ class Quantanium:
         Returns:
             QCSResults or QCSResult: The result of the execution.
         """
+        if self.use_gpu:
+            from ._core import execute_double_gpu as execute_double
+        else:
+            from ._core import execute_double_cpu as execute_double
+
         if isinstance(circuit, MimiqCircuit):
             qua_circuit = self.convert_mimiq_to_qua_circuit(circuit)
         elif isinstance(circuit, Circuit):
@@ -443,8 +459,10 @@ class Quantanium:
             else:
                 bs = [QuantaniumBitVector(bitstring.to01()) for bitstring in bitstrings]
 
-            qua_result, sv = execute_double(qua_circuit, nsamples, seed, bs)
-            self._cplx = sv
+            #qua_result, sv = execute_double(qua_circuit, nsamples, seed, bs)
+            #self._cplx = sv
+            qua_result = execute_double(qua_circuit, nsamples, seed, bs)
+
             result = self.convert_qua_results_to_mimiq_results(qua_result)
 
         except Exception as e:

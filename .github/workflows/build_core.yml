@@ -39,14 +39,37 @@ jobs:
 
     - name: Install Boost (Cross-OS)
       run: |
-        if [[ "${{ inputs.matrix_os }}" == "ubuntu-latest" ]]; then
-          sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev 
+        if [[ "${{ inputs.matrix_os }}" == "ubuntu-latest" || "${{ inputs.matrix_os }}" == "LinuxGPU" ]]; then
+          sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev
         elif [[ "${{ inputs.matrix_os }}" == "macos-*" ]]; then
           brew install boost gcc llvm libomp 
         # elif [[ "${{ inputs.matrix_os }}" == "windows-latest" ]]; then
 
         fi
       shell: bash
+
+    - name: Install python for GPUs
+      if: inputs.matrix_os == 'LinuxGPU'
+      uses: actions/setup-python@v5
+
+    - name: Install CUDA for GPUs
+      if: inputs.matrix_os == 'LinuxGPU'
+      run: |
+        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+        sudo dpkg -i cuda-keyring_1.1-1_all.deb
+        sudo apt-get update
+        sudo apt-get -y install cuda-toolkit-12-8
+
+    - name: Install CuQuantum for GPUs
+      if: inputs.matrix_os == 'LinuxGPU'
+      run: |
+        sudo apt update && sudo apt install wget
+        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+        sudo dpkg -i cuda-keyring_1.1-1_all.deb
+        sudo apt-get update
+        sudo apt-get -y install cuquantum
+        sudo apt-get -y install cuquantum-cuda-12
+
 
     - name: Install Boost on Windows via vcpkg
       if: inputs.matrix_os == 'windows-latest'
@@ -104,7 +127,8 @@ jobs:
               '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows') || 
             ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
               '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
-            ''
+            (inputs.matrix_os == 'LinuxGPU' && '-DQUANTANIUM_WITH_CUDA=ON -DQUANTANIUM_WITH_CUQUANTUM=ON') ||
+              ''
           }}
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: |

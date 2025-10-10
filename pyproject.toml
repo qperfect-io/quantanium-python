@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "quantanium"
-version = "1.11.0"
+version = "1.13.0"
 authors = [{ name = "QPerfect", email = "anna.leonteva@qperfect.io" }]
 description = "Python wrapper for the MIMIQ Quantanium statevector engine."
 readme = "README.md"
@@ -16,7 +16,9 @@ dependencies = ["numpy", "mimiqcircuits"]
 visualization = ["mimiqcircuits[visualization]"]
 
 [tool.scikit-build]
-cmake.version = "==3.22.1"
+cmake.version = ">=3.22.1"
 wheel.expand-macos-universal-tags = true
 minimum-version = "build-system.requires"
 
+[tool.scikit-build.cmake.define]
+QUANTANIUMPY_WITH_CUDA = "ON"
