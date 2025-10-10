@@ -131,22 +131,22 @@ jobs:
         CMAKE_ARGS: |
           ${{
             (inputs.matrix_os == 'windows-latest' && 
-              '-DQUANTANIUMPY_WITH_CUDA=OFF -DQUANTANIUM_USE_CUDA=OFF -DQUANTANIUM_WITH_CUQUANTUM=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows') || 
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows') || 
             ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
-              '-DQUANTANIUMPY_WITH_CUDA=OFF -DQUANTANIUM_USE_CUDA=OFF -DQUANTANIUM_WITH_CUQUANTUM=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
             ((inputs.matrix_os == 'LinuxGPU' || inputs.matrix_os == 'ubuntu-latest') && 
-              '-DQUANTANIUMPY_WITH_CUDA=ON -DQUANTANIUM_USE_CUDA=ON -DQUANTANIUM_WITH_CUQUANTUM=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCUDAToolkit_ROOT=/usr/local/cuda -DCMAKE_SKIP_RPATH=ON') ||
+              '-DQUANTANIUMPY_WITH_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCUDAToolkit_ROOT=/usr/local/cuda -DCMAKE_SKIP_RPATH=ON') ||
             ''
           }}
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: |
           ${{
             (inputs.matrix_os == 'windows-latest' && 
-              '-DQUANTANIUMPY_WITH_CUDA=OFF -DQUANTANIUM_USE_CUDA=OFF -DQUANTANIUM_WITH_CUQUANTUM=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows') || 
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows') || 
             ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
-              '-DQUANTANIUMPY_WITH_CUDA=OFF -DQUANTANIUM_USE_CUDA=OFF -DQUANTANIUM_WITH_CUQUANTUM=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf') ||
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf') ||
             ((inputs.matrix_os == 'LinuxGPU' || inputs.matrix_os == 'ubuntu-latest') && 
-              '-DQUANTANIUMPY_WITH_CUDA=ON -DQUANTANIUM_USE_CUDA=ON -DQUANTANIUM_WITH_CUQUANTUM=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCUDAToolkit_ROOT=/usr/local/cuda -DCMAKE_SKIP_RPATH=ON') ||
+              '-DQUANTANIUMPY_WITH_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCUDAToolkit_ROOT=/usr/local/cuda -DCMAKE_SKIP_RPATH=ON') ||
             ''
           }}
 
