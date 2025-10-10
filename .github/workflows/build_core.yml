@@ -37,38 +37,38 @@ jobs:
         set +x
       shell: bash
 
-    - name: Install Boost (Cross-OS)
-      run: |
-        if [[ "${{ inputs.matrix_os }}" == "ubuntu-latest" || "${{ inputs.matrix_os }}" == "LinuxGPU" ]]; then
-          sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev
-        elif [[ "${{ inputs.matrix_os }}" == "macos-*" ]]; then
-          brew install boost gcc llvm libomp 
-        # elif [[ "${{ inputs.matrix_os }}" == "windows-latest" ]]; then
+    # - name: Install Boost (Cross-OS)
+    #   run: |
+    #     if [[ "${{ inputs.matrix_os }}" == "ubuntu-latest" || "${{ inputs.matrix_os }}" == "LinuxGPU" ]]; then
+    #       sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev
+    #     elif [[ "${{ inputs.matrix_os }}" == "macos-*" ]]; then
+    #       brew install boost gcc llvm libomp 
+    #     # elif [[ "${{ inputs.matrix_os }}" == "windows-latest" ]]; then
 
-        fi
-      shell: bash
+    #     fi
+    #   shell: bash
 
     - name: Install python for GPUs
       if: inputs.matrix_os == 'LinuxGPU'
       uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-    - name: Install CUDA for GPUs
+    - name: Install pipx and cibuildwhell + ensure path for GPUs
       if: inputs.matrix_os == 'LinuxGPU'
       run: |
-        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
-        sudo dpkg -i cuda-keyring_1.1-1_all.deb
-        sudo apt-get update
-        sudo apt-get -y install cuda-toolkit-12-8
-
-    - name: Install CuQuantum for GPUs
-      if: inputs.matrix_os == 'LinuxGPU'
-      run: |
-        sudo apt update && sudo apt install wget
-        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
-        sudo dpkg -i cuda-keyring_1.1-1_all.deb
-        sudo apt-get update
-        sudo apt-get -y install cuquantum
-        sudo apt-get -y install cuquantum-cuda-12
+        # 1. Ensure basic tools are up-to-date
+        python -m ensurepip --upgrade
+        python -m pip install --upgrade pip setuptools wheel
+        
+        # 2. Install and upgrade pipx (often used by the cibuildwheel action internally)
+        python -m pip install pipx
+        python -m pipx ensurepath
+        
+        # 3. Use pipx to install the latest cibuildwheel
+        # This is a fallback/belt-and-suspenders measure, 
+        # but often fixes path-related issues on non-standard runners.
+        pipx install cibuildwheel
 
 
     - name: Install Boost on Windows via vcpkg
@@ -98,10 +98,17 @@ jobs:
       run: |
         echo "Submodule commits AFTER update:"
         git submodule status
+
+    - name: Retrograde cmake
+      run: python -m pip install ninja cmake~=3.24.3 auditwheel
  
 
     - uses: pypa/cibuildwheel@v2.22
       env:
+        # CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
+        # CIBW_MANYLINUX_X86_64_IMAGE: nvidia/cuda:12.8.0-base-ubuntu22.04
+        CUDACXX: /usr/local/cuda/bin/nvcc
+        CUDAToolkit_ROOT: /usr/local/cuda
         CIBW_ENABLE: cpython-prerelease
         CIBW_SKIP: cp*-musllinux* cp*-win_arm64*
         CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
@@ -124,19 +131,22 @@ jobs:
         CMAKE_ARGS: |
           ${{
             (inputs.matrix_os == 'windows-latest' && 
-              '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows') || 
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DQUANTANIUM_USE_CUDA=OFF -DQUANTANIUM_WITH_CUQUANTUM=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows') || 
             ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
-              '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
-            (inputs.matrix_os == 'LinuxGPU' && '-DQUANTANIUM_WITH_CUDA=ON -DQUANTANIUM_WITH_CUQUANTUM=ON') ||
-              ''
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DQUANTANIUM_USE_CUDA=OFF -DQUANTANIUM_WITH_CUQUANTUM=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
+            ((inputs.matrix_os == 'LinuxGPU' || inputs.matrix_os == 'ubuntu-latest') && 
+              '-DQUANTANIUMPY_WITH_CUDA=ON -DQUANTANIUM_USE_CUDA=ON -DQUANTANIUM_WITH_CUQUANTUM=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCUDAToolkit_ROOT=/usr/local/cuda -DCMAKE_SKIP_RPATH=ON') ||
+            ''
           }}
 
         CIBW_CMAKE_CONFIGURE_OPTIONS: |
           ${{
             (inputs.matrix_os == 'windows-latest' && 
-              '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows') || 
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DQUANTANIUM_USE_CUDA=OFF -DQUANTANIUM_WITH_CUQUANTUM=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows') || 
             ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
-              '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DQUANTANIUM_USE_CUDA=OFF -DQUANTANIUM_WITH_CUQUANTUM=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf') ||
+            ((inputs.matrix_os == 'LinuxGPU' || inputs.matrix_os == 'ubuntu-latest') && 
+              '-DQUANTANIUMPY_WITH_CUDA=ON -DQUANTANIUM_USE_CUDA=ON -DQUANTANIUM_WITH_CUQUANTUM=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCUDAToolkit_ROOT=/usr/local/cuda -DCMAKE_SKIP_RPATH=ON') ||
             ''
           }}
 
@@ -189,6 +199,9 @@ jobs:
             set +x
         
         CIBW_BEFORE_ALL_LINUX: |
+          # Install cmake
+          python -m pip install ninja cmake~=3.24.3 auditwheel
+
           # Install Boost
           set -x
           yum install -y epel-release autoconf automake libtool gcc gcc-c++ make unzip wget &&
@@ -220,7 +233,45 @@ jobs:
           ls /usr/local/include/google/protobuf || echo "Protobuf headers not found"
           ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
           set +x
-      
+
+          # SET CUDA
+           echo "----------------------------CUDA INSTALL-----------------------------------------------"
+          yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
+          yum clean all
+          yum -y install nvidia-driver-latest-dkms
+          yum -y install cuda-toolkit
+          yum -y install cuquantum
+          yum -y install custatevec
+
+          export PATH=$PATH:/usr/local/cuda/bin
+          export CMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+          export CUDAToolkit_ROOT=/usr/local/cuda
+          export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+          export CPATH=/usr/local/cuda/include:$CPATH
+
+          # DEBUG
+          echo "----------------------------CUDA DEBUG-----------------------------------------------"
+          which nvcc
+          nvcc --version
+          ls /usr/local
+          echo "-----------------"
+
+          ls /usr/local/cuda/bin
+
+          # compiler debug
+          echo -------------------------------- Compiler debug-------------------------
+          ls /usr/bin 
+          which gcc
+
+        CIBW_ENVIRONMENT_LINUX: >
+            CMAKE_ARGS="-DQUANTANIUM_WITH_CUDA=ON -DQUANTANIUM_WITH_CUQUANTUM=ON -DQUANTANIUM_USE_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES=70;75;80;86;89;90 -DCMAKE_SKIP_RPATH=ON "
+            CUDAToolkit_ROOT="/usr/local/cuda"
+            CUDACXX="/usr/local/cuda/bin/nvcc"
+            LIBRARY_PATH=/usr/local/cuda/lib64:$LIBRARY_PATH
+            LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+            CFLAGS="-I/usr/local/cuda/include $CFLAGS"
+            CPATH="/usr/local/cuda/include:$CPATH"
+
   
 
         CMAKE_CXX_STANDARD: 20

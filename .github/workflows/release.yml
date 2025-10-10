@@ -16,8 +16,9 @@ env:
 
 jobs:
 
-  build: 
+  build:
     uses:  ./.github/workflows/build_all_platforms.yml
+    # uses:  ./.github/workflows/build_all_platforms.yml
     secrets: inherit
 
   create_release:

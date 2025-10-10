@@ -2,6 +2,7 @@ name: Test_building_gpu
 
 on:
   workflow_dispatch:
+  workflow_call:
 env:
   FORCE_COLOR: 3
     
@@ -13,15 +14,8 @@ jobs:
 
   build_sdist:
     name: Build SDist
-    runs-on: LinuxGpu
+    runs-on: ubuntu-latest
     steps:
-    
-
-    - name: Install python && pipx
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3 python3-pip python3-venv pipx
-        pipx ensurepath
 
     - uses: actions/checkout@v4
       with:
@@ -53,12 +47,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: LinuxGPU
+          - os: ubuntu-latest
             arch: x86_64
 
     uses: ./.github/workflows/build_core.yml
     with:
       matrix_os: ${{ matrix.os }}
       matrix_arch: ${{ matrix.arch }}
-      BOOST_ROOT: ${{ needs.build_sdist.steps.install-boost.outputs.BOOST_ROOT }}
+      BOOST_ROOT:  ${{ needs.build_sdist.steps.install-boost.outputs.BOOST_ROOT }}
     secrets: inherit

@@ -1,7 +1,7 @@
 name: Test_building_ubuntu
 
 on:
-  workflow_call:
+  workflow_dispatch:
 env:
   FORCE_COLOR: 3
     
