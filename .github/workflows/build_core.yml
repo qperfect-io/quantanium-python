@@ -37,16 +37,15 @@ jobs:
         set +x
       shell: bash
 
-    # - name: Install Boost (Cross-OS)
-    #   run: |
-    #     if [[ "${{ inputs.matrix_os }}" == "ubuntu-latest" || "${{ inputs.matrix_os }}" == "LinuxGPU" ]]; then
-    #       sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev
-    #     elif [[ "${{ inputs.matrix_os }}" == "macos-*" ]]; then
-    #       brew install boost gcc llvm libomp 
-    #     # elif [[ "${{ inputs.matrix_os }}" == "windows-latest" ]]; then
-
-    #     fi
-    #   shell: bash
+    - name: Install Boost (Cross-OS)
+      run: |
+        if [[ "${{ inputs.matrix_os }}" == "ubuntu-latest" || "${{ inputs.matrix_os }}" == "LinuxGPU" ]]; then
+          sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev
+        elif [[ "${{ inputs.matrix_os }}" == "macos-*" ]]; then
+          brew install boost gcc llvm libomp 
+        # elif [[ "${{ inputs.matrix_os }}" == "windows-latest" ]]; then
+        fi
+      shell: bash
 
     - name: Install python for GPUs
       if: inputs.matrix_os == 'LinuxGPU'
@@ -275,7 +274,7 @@ jobs:
   
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ inputs.BOOST_ROOT }}' MACOSX_DEPLOYMENT_TARGET=${{ inputs.matrix_os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH=/Users/runner/protobuf CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ inputs.BOOST_ROOT }}'  MACOSX_DEPLOYMENT_TARGET=${{ inputs.matrix_os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH=/Users/runner/protobuf CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
 
       
      
