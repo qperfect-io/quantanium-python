@@ -9,7 +9,7 @@ authors = [{ name = "QPerfect", email = "anna.leonteva@qperfect.io" }]
 description = "Python wrapper for the MIMIQ Quantanium statevector engine."
 readme = "README.md"
 requires-python = " >= 3.9"
-dependencies = ["numpy", "mimiqcircuits"]
+dependencies = ["numpy", "mimiqcircuits", "nvidia-cuda-runtime-cu12>=12.0", "nvidia-cublas-cu12>=12.0"]
 
 
 [project.optional-dependencies]

@@ -92,10 +92,13 @@ target_link_libraries(_core
     pybind11::headers
     quantanium::quantanium
     quantanium::proto
+    Boost::headers
 )
 
 # CUDA path (CUDA-enabled Python extension, if selected)
 if(QUANTANIUMPY_WITH_CUDA)
+  set(CUBLAS_RPATH "\$$ORIGIN/../nvidia/cublas/lib")
+  set(CUBLAS_LIB "-Wl,-rpath,'${CUBLAS_RPATH}'")
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
 
@@ -143,6 +146,7 @@ if(QUANTANIUMPY_WITH_CUDA)
     quantanium::proto
 	  quantanium::quantanium_gpu
     CUDA::cudart
+    ${CUBLAS_LIB}
   )
   # Link cuQuantum manually
   if (CUSTATEVEC_LIB)
@@ -150,8 +154,10 @@ if(QUANTANIUMPY_WITH_CUDA)
     target_link_libraries(_core PRIVATE ${CUSTATEVEC_LIB})
     get_filename_component(CUSTATEVEC_DIR ${CUSTATEVEC_LIB} DIRECTORY)
     set_target_properties(_core PROPERTIES
-        BUILD_RPATH "${CUSTATEVEC_DIR}"
-        INSTALL_RPATH "${CUSTATEVEC_DIR}"
+      BUILD_RPATH "${CUBLAS_RPATH}"
+      INSTALL_RPATH "${CUBLAS_RPATH}"
+        # BUILD_RPATH "${CUSTATEVEC_DIR}"
+        # INSTALL_RPATH "${CUSTATEVEC_DIR}"
     )
   endif()
 

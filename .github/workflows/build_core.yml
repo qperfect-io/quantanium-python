@@ -9,9 +9,7 @@ on:
       matrix_arch:
         required: true
         type: string
-      BOOST_ROOT:
-        required: true
-        type: string
+
 
 env:
   FORCE_COLOR: 3
@@ -38,13 +36,19 @@ jobs:
       shell: bash
 
     - name: Install Boost (Cross-OS)
+      id: boost_prefix
       run: |
-        if [[ "${{ inputs.matrix_os }}" == "ubuntu-latest" || "${{ inputs.matrix_os }}" == "LinuxGPU" ]]; then
-          sudo apt update && sudo apt install -y libboost-all-dev protobuf-compiler libprotobuf-dev
-        elif [[ "${{ inputs.matrix_os }}" == "macos-*" ]]; then
+ 
+        if [[ "${{ inputs.matrix_os }}" == "macos-14" ]]; then
+
+          brew update
           brew install boost gcc llvm libomp 
-        # elif [[ "${{ inputs.matrix_os }}" == "windows-latest" ]]; then
+          brew link --force boost
+      
+          prefix="$(brew --prefix boost)"
+          echo "boost_root=$prefix" >> "$GITHUB_OUTPUT"  
         fi
+      
       shell: bash
 
     - name: Install python for GPUs
@@ -53,7 +57,7 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install pipx and cibuildwhell + ensure path for GPUs
+    - name: Instaill pipx and cibuildwhell + ensure path for GPUs
       if: inputs.matrix_os == 'LinuxGPU'
       run: |
         # 1. Ensure basic tools are up-to-date
@@ -104,8 +108,6 @@ jobs:
 
     - uses: pypa/cibuildwheel@v2.22
       env:
-        # CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
-        # CIBW_MANYLINUX_X86_64_IMAGE: nvidia/cuda:12.8.0-base-ubuntu22.04
         CUDACXX: /usr/local/cuda/bin/nvcc
         CUDAToolkit_ROOT: /usr/local/cuda
         CIBW_ENABLE: cpython-prerelease
@@ -119,20 +121,16 @@ jobs:
 
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:/Windows/System32 --add-path C:/vcpkg/installed/x64-windows/bin -w {dest_dir} {wheel}"
+        
+        CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --exclude libcuda.so.1 --exclude libcublas.so.12 --exclude libcublas-4cc45526.so.12.4.5.8 --exclude libcublasLt-44a813aa.so.12.4.5.8 {wheel} -w {dest_dir}"
     
 
-
-
-
-        #CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ inputs.matrix_os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || '' }}
-        #CMAKE_ARGS:                  ${{ inputs.matrix_os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows' || (inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14'|| inputs.matrix_os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf' || '' }}
-        #CIBW_CMAKE_CONFIGURE_OPTIONS: ${{ inputs.matrix_os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows' || (inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14'|| inputs.matrix_os == 'macos-13-xlarge') && '-DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf' || '' }}
         CMAKE_ARGS: |
           ${{
             (inputs.matrix_os == 'windows-latest' && 
               '-DQUANTANIUMPY_WITH_CUDA=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows') || 
             ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
-              '-DQUANTANIUMPY_WITH_CUDA=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf') || 
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -DCMAKE_PREFIX_PATH=/Users/runner/protobuf:${{ steps.boost_prefix.outputs.boost_root }} -DBoost_INCLUDE_DIR=${{ steps.boost_prefix.outputs.boost_root }}/include -DBoost_LIBRARY_DIR=${{ steps.boost_prefix.outputs.boost_root }}/lib') || 
             ((inputs.matrix_os == 'LinuxGPU' || inputs.matrix_os == 'ubuntu-latest') && 
               '-DQUANTANIUMPY_WITH_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCUDAToolkit_ROOT=/usr/local/cuda -DCMAKE_SKIP_RPATH=ON') ||
             ''
@@ -143,7 +141,7 @@ jobs:
             (inputs.matrix_os == 'windows-latest' && 
               '-DQUANTANIUMPY_WITH_CUDA=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake;-DVCPKG_TARGET_TRIPLET=x64-windows') || 
             ((inputs.matrix_os == 'macos-13' || inputs.matrix_os == 'macos-14' || inputs.matrix_os == 'macos-13-xlarge') && 
-              '-DQUANTANIUMPY_WITH_CUDA=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf') ||
+              '-DQUANTANIUMPY_WITH_CUDA=OFF -DProtobuf_ROOT=/Users/runner/protobuf -DProtobuf_INCLUDE_DIR=/Users/runner/protobuf/include -DProtobuf_LIBRARIES=/Users/runner/protobuf/lib/libprotobuf.dylib -DProtobuf_PROTOC_EXECUTABLE=/Users/runner/protobuf/bin/protoc -CMAKE_PREFIX_PATH=/Users/runner/protobuf:${{ steps.boost_prefix.outputs.boost_root }} -DBoost_INCLUDE_DIR=${{ steps.boost_prefix.outputs.boost_root }}/include -DBoost_LIBRARY_DIR=${{ steps.boost_prefix.outputs.boost_root }}/lib') ||
             ((inputs.matrix_os == 'LinuxGPU' || inputs.matrix_os == 'ubuntu-latest') && 
               '-DQUANTANIUMPY_WITH_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCUDAToolkit_ROOT=/usr/local/cuda -DCMAKE_SKIP_RPATH=ON') ||
             ''
@@ -160,8 +158,6 @@ jobs:
             # OpenMP dependencies for MacOS
             set -x
             echo "---------------------DEBUG------------------------------"
-            brew update
-            brew install gcc llvm libomp 
    
           
             git clone -b v3.21.12 https://github.com/protocolbuffers/protobuf.git
@@ -175,25 +171,6 @@ jobs:
                 -DCMAKE_INSTALL_PREFIX=/Users/runner/protobuf 
             make -j2
             make install
-
-
-   
-            brew install boost
-            brew link --force boost
-            brew list
-
-            export BOOST_ROOT=$(brew --prefix boost)
-            export CXXFLAGS="-I$BOOST_ROOT/include -I/Users/runner/protobuf/include"
-            export LDFLAGS="-L$BOOST_ROOT/lib -L/Users/runner/protobuf/lib"
-            DETECTED_ARCH=$(uname -m)
-            echo "Detected architecture: $DETECTED_ARCH"
-            export PATH="/Users/runner/protobuf/bin:$PATH" &&
-            export DYLD_LIBRARY_PATH="/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH" &&
-            export CMAKE_PREFIX_PATH="/Users/runner/protobuf" &&
-            protoc --version
-            echo "Checking protobuf version"
-            ls -l /Users/runner/protobuf3/include/google/protobuf/stubs/common.h
-            cat /Users/runner/protobuf3/include/google/protobuf/stubs/common.h | head -n 10
             echo "--------------------END DEBUG --------------------------"	
             set +x
         
@@ -227,10 +204,10 @@ jobs:
           export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH" &&
           export CMAKE_PREFIX_PATH="/usr/local" &&
           ldconfig &&
-          # Debug Protobuf installation
-          protoc --version || echo "Protoc not found"
-          ls /usr/local/include/google/protobuf || echo "Protobuf headers not found"
-          ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
+          # # Debug Protobuf installation
+          # protoc --version || echo "Protoc not found"
+          # ls /usr/local/include/google/protobuf || echo "Protobuf headers not found"
+          # ls /usr/local/lib | grep protobuf || echo "Protobuf libraries not found"
           set +x
 
           # SET CUDA
@@ -271,10 +248,10 @@ jobs:
             CFLAGS="-I/usr/local/cuda/include $CFLAGS"
             CPATH="/usr/local/cuda/include:$CPATH"
 
-  
+
 
         CMAKE_CXX_STANDARD: 20
-        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT='${{ inputs.BOOST_ROOT }}'  MACOSX_DEPLOYMENT_TARGET=${{ inputs.matrix_os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH=/Users/runner/protobuf CXXFLAGS="-I/Users/runner/protobuf/include -I$(brew --prefix boost)/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L$(brew --prefix boost)/lib" 
+        CIBW_ENVIRONMENT_MACOS: BOOST_ROOT=${{ steps.boost_prefix.outputs.boost_root }} CMAKE_PREFIX_PATH=/Users/runner/protobuf:${{ steps.boost_prefix.outputs.boost_root }} CXXFLAGS="-I${{ steps.boost_prefix.outputs.boost_root }}/include" LDFLAGS="-L${{ steps.boost_prefix.outputs.boost_root }}/lib" MACOSX_DEPLOYMENT_TARGET=${{ inputs.matrix_os == 'macos-14' && '14.0' || '13.0' }} DYLD_LIBRARY_PATH=/Users/runner/protobuf/lib:$DYLD_LIBRARY_PATH  CMAKE_PREFIX_PATH=/Users/runner/protobuf CXXFLAGS="-I/Users/runner/protobuf/include -I${{ steps.boost_prefix.outputs.boost_root }}/include"  LDFLAGS="-L/Users/runner/protobuf/lib -L${{ steps.boost_prefix.outputs.boost_root }}/lib" 
 
       
      
@@ -288,28 +265,6 @@ jobs:
       with:
         name: cibw-wheels-${{ inputs.matrix_os }}-${{ inputs.matrix_arch }}
         path: wheelhouse/*.whl
-
-
-
-
-    # - name: Install and test built wheel
-    #   if: startsWith(inputs.matrix_os, 'macos')
-    #   run: |
-    #     echo "== Listing wheelhouse =="
-    #     ls -lh wheelhouse/
-
-    #     WHEEL=$(ls wheelhouse/quantanium-*.whl | head -n 1)
-    #     echo "Installing $WHEEL..."
-
-    #     python3 -m venv testenv
-    #     source testenv/bin/activate
-
-    #     python -m pip install --upgrade pip
-    #     python -m pip install "$WHEEL"
-
-    #     echo "Testing Python import..."
-    #     python -c "import quantanium; print('quantanium import OK')"
-    #     python -c "import quantanium._core; print('quantanium._core import OK')"
 
 
 
