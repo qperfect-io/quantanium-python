@@ -1,6 +1,12 @@
 # Quantanium-python
 
-*Python Wrapper for the MIMIQ Quantanium statevector engine.*
+*Python Wrapper for the MIMIQ Quantanium statevector engine: CPU and GPU Backends.*
+
+- **CPU backend (AVX):** high-performance vectorized execution on AMD64 & ARM64 processors.
+- **GPU backend (NVIDIA cuStateVec/cuQuantum):** accelerated statevector simulation using NVIDIA’s cuStateVec (part of cuQuantum).
+
+> **Note:** By default, Quantanium builds with **CUDA/GPU** support enabled.  
+
 
 ## Prerequisites
 
@@ -61,14 +67,26 @@ In order to install quantanium-python from source, please follow the next set of
 1. Clone this repository with
 
 ```sh
-$ git clone git@github.com:qperfect-io/quantanium-python-private.git
-$ cd quantanium-python-private
+$ git clone git@github.com:qperfect-io/quantanium-python.git
+$ cd quantanium-python
 ```
 
-2. Install quantanium-python locally:
+2. Install quantanium-python locally
+2.1 by default with GPU support:
 
 ```sh
+
 pip install -e .
+
+```
+
+
+2.2 CPU-only (without GPU support):
+
+```sh
+
+pip install -e . --config-settings=cmake.define.QUANTANIUMPY_WITH_CUDA=OFF
+
 ```
 
 ## Accessible Functions
