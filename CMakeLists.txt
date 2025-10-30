@@ -20,7 +20,7 @@ cmake_minimum_required(VERSION 3.15...3.28)
 # ---------------------------------------------------------------------------
 # Start QuantaniumPy project
 # ---------------------------------------------------------------------------
-set(QUANTANIUMPY_VERSION 1.12.0)
+set(QUANTANIUMPY_VERSION 1.14.1)
 option(QUANTANIUMPY_WITH_CUDA "Build Python wrapper with CUDA support" ON)
 
 # Optional: let users override CUDA arch list from the command line
