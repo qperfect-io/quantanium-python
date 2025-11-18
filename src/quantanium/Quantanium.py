@@ -99,7 +99,6 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.Kraus,
     mc.GateCustom,
     mc.GateDecl,
-    mc.GateCall,
     mc.HamiltonianTerm,
     mc.Hamiltonian,
     mc.Detector,
@@ -171,8 +170,12 @@ class Quantanium:
 
             # Control wrapper
             if isinstance(op, mc.Control) and hasattr(op, "op"):
-                op = op.op
-                continue
+                #op = op.op
+                #continue
+                if op.num_qubits <= 2:
+                    return self.issupported(op.op)
+                else: 
+                    return False
             break
         return op
 
@@ -336,7 +339,7 @@ class Quantanium:
             # Now the file is closed and unlocked, we can load it
             mimiq_circuit = MimiqCircuit()
             mimiq_circuit = mimiq_circuit.loadproto(tmp_name)
-
+            mimiq_circuit_dec= self._decompose_mimiq(mimiq_circuit)
         except Exception as e:
             raise Exception(f"Error converting Circuit to mimiq::Circuit: {e}")
 
