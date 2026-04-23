@@ -23,7 +23,7 @@ jobs:
     - name: Configure GitLab token
       run: |
         git config --global credential.helper store
-        echo "https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.com" \
+        echo "https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.qperfect.io" \
           >> ~/.git-credentials
 
     # 3. Now initialize and update the GitLab submodule
