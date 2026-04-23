@@ -186,8 +186,12 @@ class Quantanium:
         if isinstance(op, mc.IfStatement):
             return self.issupported(op.get_operation())
  
+
+
         op_name = self.unwrap(op)
         if type(op_name) in QUANTANIUM_SUPPORTED_OPERATIONS:
+            if isinstance(op_name, mc.GateSWAP):
+                return False
             return True
 
 
@@ -231,6 +235,7 @@ class Quantanium:
 
     def _checkdecompose(self, c: MimiqCircuit, inst: mc.Instruction) -> bool:
         op = inst.get_operation()
+
         if self.issupported(op):
             c.push(inst)
         elif (
@@ -451,6 +456,7 @@ class Quantanium:
             qua_circuit = self.convert_qasm_to_qua_circuit(circuit)
         else:
             raise TypeError("circuit must be either a Circuit or mimiq::Circuit")
+
         try:
             if seed is None:
                 seed = int(time.time())
@@ -460,9 +466,12 @@ class Quantanium:
             else:
                 bs = [QuantaniumBitVector(bitstring.to01()) for bitstring in bitstrings]
 
-            #qua_result, sv = execute_double(qua_circuit, nsamples, seed, bs)
-            #self._cplx = sv
-            qua_result = execute_double(qua_circuit, nsamples, seed, bs)
+            if self.use_gpu:
+                qua_result = execute_double(qua_circuit, nsamples, seed, bs)
+                self._cplx = None
+            else:
+                qua_result, sv = execute_double(qua_circuit, nsamples, seed, bs)
+                self._cplx = sv
 
             result = self.convert_qua_results_to_mimiq_results(qua_result)
 
@@ -471,50 +480,94 @@ class Quantanium:
 
         return result
 
-
-
     def evolve(
-            self,
-            circuit,
-            stop_before_measure=False,
-            seed=None,
-        ):
-            """
-            Evolve the given circuit, with or without a provided statevector.
+        self,
+        circuit,
+        stop_before_measure=False,
+        seed=None,
+    ):
+        """
+        Evolve the given circuit, with or without a provided statevector.
 
-            Args:
-                circuit: MimiqCircuit, QuaCircuit or str.
-                stop_before_measure (bool): Whether to stop before measurement.
-                seed (int): Random seed (default = time.time()).
+        Args:
+            circuit: MimiqCircuit, Circuit or str.
+            stop_before_measure (bool): Whether to stop before measurement.
+            seed (int): Random seed (default = time.time_ns()).
+        """
+        if isinstance(circuit, MimiqCircuit):
+            qua_circuit = self.convert_mimiq_to_qua_circuit(circuit)
+        elif isinstance(circuit, Circuit):
+            qua_circuit = circuit
+        elif isinstance(circuit, str):
+            qua_circuit = self.convert_qasm_to_qua_circuit(circuit)
+        else:
+            raise TypeError("circuit must be MimiqCircuit, Circuit, or str")
 
-            """
-            if isinstance(circuit, MimiqCircuit):
-                qua_circuit = self.convert_mimiq_to_qua_circuit(circuit)
-            elif isinstance(circuit, QuaCircuit):
-                qua_circuit = circuit
-            elif isinstance(circuit, str):
-                qua_circuit = self.convert_qasm_to_qua_circuit(circuit)
+        if seed is None:
+            seed = time.time_ns()
+
+        try:
+            if self._statevector is not None:
+                self._statevector, sv_cplx = evolve_next(
+                    self._statevector, qua_circuit, seed, stop_before_measure
+                )
+                self._cplx = sv_cplx
             else:
-                raise TypeError("circuit must be MimiqCircuit, Circuit, or str")
+                self._statevector, sv_cplx = evolve(
+                    qua_circuit, seed, stop_before_measure
+                )
+                self._cplx = sv_cplx
 
-            if seed is None:
-                seed = time.time_ns()
+        except Exception as e:
+            raise RuntimeError(f"Error evolving the circuit: {e}")
 
-            try:
-                if self._statevector is not None:
-                    # Call evolve_next that modifies the given statevector in place
-                    self._statevector, sv_cplx = evolve_next(self._statevector, qua_circuit, seed, stop_before_measure)
-                    self._cplx = sv_cplx
+        if not self.use_gpu:
+            return self._cplx
+        return None
+
+    # def evolve(
+    #         self,
+    #         circuit,
+    #         stop_before_measure=False,
+    #         seed=None,
+    #     ):
+    #         """
+    #         Evolve the given circuit, with or without a provided statevector.
+
+    #         Args:
+    #             circuit: MimiqCircuit, QuaCircuit or str.
+    #             stop_before_measure (bool): Whether to stop before measurement.
+    #             seed (int): Random seed (default = time.time()).
+
+    #         """
+    #         if isinstance(circuit, MimiqCircuit):
+    #             qua_circuit = self.convert_mimiq_to_qua_circuit(circuit)
+    #         elif isinstance(circuit, QuaCircuit):
+    #             qua_circuit = circuit
+    #         elif isinstance(circuit, str):
+    #             qua_circuit = self.convert_qasm_to_qua_circuit(circuit)
+    #         else:
+    #             raise TypeError("circuit must be MimiqCircuit, Circuit, or str")
+
+    #         if seed is None:
+    #             seed = time.time_ns()
+
+    #         try:
+    #             if self._statevector is not None:
+    #                 # Call evolve_next that modifies the given statevector in place
+    #                 self._statevector, sv_cplx = evolve_next(self._statevector, qua_circuit, seed, stop_before_measure)
+    #                 self._cplx = sv_cplx
                      
-                else:
-                    # Call evolve that returns a new statevector
-                    self._statevector, sv_cplx = evolve(qua_circuit, seed, stop_before_measure)
-                    self._cplx = sv_cplx
+    #             else:
+    #                 # Call evolve that returns a new statevector
+    #                 self._statevector, sv_cplx = evolve(qua_circuit, seed, stop_before_measure)
+    #                 self._cplx = sv_cplx
                   
-            except Exception as e:
-                raise RuntimeError(f"Error evolving the circuit: {e}")
-
-            return 
+    #         except Exception as e:
+    #             raise RuntimeError(f"Error evolving the circuit: {e}")
+    #         if not self.use_gpu:
+    #             return self._cplx
+    #         return None 
 
     def zerostate(self):
         """
