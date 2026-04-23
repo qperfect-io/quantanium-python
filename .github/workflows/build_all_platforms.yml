@@ -17,10 +17,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        submodules: recursive
-        token: ${{ secrets.QUANTANIUM_READ_PAT }}
+        submodules: false
 
+    # 2. Inject GitLab credentials into git's credential store
+    - name: Configure GitLab token
+      run: |
+        git config --global credential.helper store
+        echo "https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.com" \
+          >> ~/.git-credentials
 
+    # 3. Now initialize and update the GitLab submodule
+    - name: Init and update submodules
+      run: |
+        git submodule update --init --recursive
 
     - name: Build SDist
       run: pipx run build --sdist
