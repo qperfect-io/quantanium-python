@@ -99,6 +99,7 @@ QUANTANIUM_SUPPORTED_OPERATIONS = {
     mc.Kraus,
     mc.GateCustom,
     mc.GateDecl,
+    mc.GateCall,
     mc.HamiltonianTerm,
     mc.Hamiltonian,
     mc.Detector,
@@ -170,8 +171,6 @@ class Quantanium:
 
             # Control wrapper
             if isinstance(op, mc.Control) and hasattr(op, "op"):
-                #op = op.op
-                #continue
                 if op.num_qubits <= 2:
                     return self.issupported(op.op)
                 else: 
@@ -300,7 +299,6 @@ class Quantanium:
             # Now that tmp is closed (and unlocked), we can reopen it
             qua_circuit = ProtoParser().load_proto(tmp_name)
         except Exception as e:
-            # Propagate with your custom message
             raise Exception(f"Error converting mimiq::Circuit to Circuit: {e}")
 
         finally:

@@ -38,6 +38,59 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
+#if QUANTANIUM_USE_CUDA
+#include <cuda_runtime.h>
+#include <custatevec.h>
+#include <filesystem>
+
+static quantanium::from_proto::Circuit make_warmup_circuit_from_qasm()
+{
+    using namespace quantanium;
+    namespace fs = std::filesystem;
+
+    const char* qasm_text =
+        "OPENQASM 2.0;\n"
+        "include \"qelib1.inc\";\n"
+        "qreg q[28];\n"
+        "x q[0];\n";
+
+    /// Cross-platform temp directory
+    fs::path tmp_dir = fs::temp_directory_path();
+    fs::path filename = tmp_dir / "quantanium_warmup.qasm";
+
+    /// Write QASM
+    {
+        std::ofstream out(filename);
+        out << qasm_text;
+    }
+
+    /// Load circuit
+    from_proto::Circuit circuit = LoadOpenQASM(filename.string());
+    std::cout << "[warmup] numqubits = " << circuit.numqubits() << std::endl;
+
+    /// Cleanup
+    std::error_code ec;
+    fs::remove(filename, ec);
+
+    return circuit;
+}
+
+
+static void quantanium_gpu_execute_warmup()
+{
+    using namespace quantanium;
+
+    from_proto::Circuit circuit = make_warmup_circuit_from_qasm();
+
+    const unsigned long shots = 1;
+    const unsigned long seed  = 1;
+    std::vector<from_proto::BitVector> bitstrings;
+
+    auto result = Execute_ext<double, GPU>(circuit, shots, seed, bitstrings);
+
+}
+#endif
+
 namespace py = pybind11;
 
 namespace qua = quantanium;
@@ -45,6 +98,11 @@ namespace qua = quantanium;
 
 PYBIND11_MODULE(_core, m) {
   m.doc() = "pybind11 wrapper for Quantanium";
+
+#if QUANTANIUM_USE_CUDA
+   quantanium_gpu_execute_warmup();
+#endif
+
 
   py::class_<qua::from_proto::BitVector>(m, "BitVector")
         .def(py::init<size_t>()) // Constructor with number of qubits
@@ -86,14 +144,6 @@ PYBIND11_MODULE(_core, m) {
         .def("numqubits", &qua::StateVector<double, quantanium::CPU>::NumQubits)
         .def("zerostate", &qua::StateVector<double, quantanium::CPU>::SetInitialState);
 
- /* py::class_<qua::Simulator<double>>(m, "SimulatorDouble")
-      .def(py::init<qua::from_proto::Circuit>())
-      .def(py::init<qua::from_proto::Circuit, uint64_t>())
-      .def("simulate_circuit", &qua::Simulator<double>::SimulateCircuit)
-      .def("get_result", &qua::Simulator<double>::GetResult)
-      .def("sampling", &qua::Simulator<double>::Sampling)
-      .def("get_sv", &qua::Simulator<double>::GetStateVector);
-*/
     py::class_<qua::Simulator<double, qua::CPU>>(m, "SimulatorDoubleCPU")
         .def(py::init<qua::from_proto::Circuit>())
         .def(py::init<qua::from_proto::Circuit, uint64_t>())
@@ -138,21 +188,6 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<>())
       .def("save_proto", &qua::ProtoResult::SaveProto)
       .def("load_proto", &qua::ProtoResult::LoadProto);
-    m.def("execute_double_cpu",
-        [](qua::from_proto::Circuit &circuit, int shots, int seed,
-            std::vector<qua::from_proto::BitVector> &bitstrings) {
-            // Explicitly define the tuple type
-            quantanium::from_proto::QCSResults full_result =
-                qua::Execute_ext<double>(circuit,
-                                        static_cast<unsigned long>(shots),
-                                        static_cast<unsigned long>(seed),
-                                        bitstrings);
-
-            // Extract values correctly
-            quantanium::from_proto::QCSResults result = full_result;
-
-            return result;
-        });
 // old version 
 // TO DO -  return sv (as before) only for cpu !!!
   /*  m.def("execute_double_cpu",
