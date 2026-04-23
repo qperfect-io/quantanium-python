@@ -21,11 +21,14 @@ jobs:
     runs-on: ${{ inputs.matrix_os }}
 
     steps:
+    - name: Configure Git credentials for GitLab
+      run: |
+        git config --global url."https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.qperfect.io/".insteadOf "https://gitlab.qperfect.io/"
+
     - uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
-        token: ${{ secrets.QUANTANIUM_READ_PAT }}
         
     - name: Check Architecture
       run: |
