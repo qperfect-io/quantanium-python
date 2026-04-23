@@ -3,5 +3,5 @@
         url = https://github.com/pybind/pybind11.git
 [submodule "libs/quantanium"]
         path = libs/quantanium
-        url = git@gitlab.qperfect.io:development/quantanium.git
+        url = git@gitlab.qperfect.io:development/quantanium/quantanium.git
 
