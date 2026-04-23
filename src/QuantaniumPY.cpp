@@ -188,9 +188,8 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<>())
       .def("save_proto", &qua::ProtoResult::SaveProto)
       .def("load_proto", &qua::ProtoResult::LoadProto);
-// old version 
-// TO DO -  return sv (as before) only for cpu !!!
-  /*  m.def("execute_double_cpu",
+
+    m.def("execute_double_cpu",
       [](qua::from_proto::Circuit &circuit, int shots, int seed,
          std::vector<qua::from_proto::BitVector> &bitstrings) {
         // Explicitly define the tuple type
@@ -205,20 +204,20 @@ PYBIND11_MODULE(_core, m) {
         std::vector<std::complex<double>> sv = std::get<1>(full_result);
 
         return py::make_tuple(result, sv);
-      });*/
-        m.def("execute_double_cpu",
-        [](qua::from_proto::Circuit& circuit,
-            unsigned long              shots,
-            unsigned long              seed,
-            std::vector<qua::from_proto::BitVector>& bitstrings) {
-            auto result = qua::Execute_ext<double, qua::CPU>(circuit, shots, seed, bitstrings);
-            return result;
-        },
-        py::arg("circuit"),
-        py::arg("shots"),
-        py::arg("seed"),
-        py::arg("bitstrings")
-        );
+      });
+        // m.def("execute_double_cpu",
+        // [](qua::from_proto::Circuit& circuit,
+        //     unsigned long              shots,
+        //     unsigned long              seed,
+        //     std::vector<qua::from_proto::BitVector>& bitstrings) {
+        //     auto result = qua::Execute_ext<double, qua::CPU>(circuit, shots, seed, bitstrings);
+        //     return result;
+        // },
+        // py::arg("circuit"),
+        // py::arg("shots"),
+        // py::arg("seed"),
+        // py::arg("bitstrings")
+        // );
 
 #if QUANTANIUM_USE_CUDA
     m.def("execute_double_gpu",
