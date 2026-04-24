@@ -97,9 +97,9 @@ PYBIND11_MODULE(_core, m)
 {
     m.doc() = "pybind11 wrapper for Quantanium";
 
-#if QUANTANIUM_USE_CUDA
-    quantanium_gpu_execute_warmup();
-#endif
+// #if QUANTANIUM_USE_CUDA
+//     quantanium_gpu_execute_warmup();
+// #endif
 
     py::class_<qua::from_proto::BitVector>(m, "BitVector")
         .def(py::init<size_t>()) // Constructor with number of qubits
