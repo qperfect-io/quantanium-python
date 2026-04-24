@@ -21,25 +21,14 @@ jobs:
     runs-on: ${{ inputs.matrix_os }}
 
     steps:
-    - name: Configure Git credentials for GitLab
+    - name: Configure Git credentials for GitHub and GitLab
       run: |
         git config --global url."https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.qperfect.io/".insteadOf "https://gitlab.qperfect.io/"
 
     - uses: actions/checkout@v4
       with:
-        submodules: false
+        submodules: recursive
 
-    # 2. Inject GitLab credentials into git's credential store
-    - name: Configure GitLab token
-      run: |
-        git config --global credential.helper store
-        echo "https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.qperfect.io" \
-          >> ~/.git-credentials
-
-    # 3. Now initialize and update the GitLab submodule
-    - name: Init and update submodules
-      run: |
-        git submodule update --init --recursive
         
     - name: Check Architecture
       run: |

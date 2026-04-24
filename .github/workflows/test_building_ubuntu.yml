@@ -15,10 +15,25 @@ jobs:
     name: Build SDist
     runs-on: ubuntu-latest
     steps:
+    - name: Configure Git credentials for GitHub and GitLab
+      run: |
+        git config --global url."https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.qperfect.io/".insteadOf "https://gitlab.qperfect.io/"
+
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-        token: ${{ secrets.QUANTANIUM_READ_PAT }}
+
+    # 2. Inject GitLab credentials into git's credential store
+    - name: Configure GitLab token
+      run: |
+        git config --global credential.helper store
+        echo "https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.qperfect.io" \
+          >> ~/.git-credentials
+
+    # 3. Now initialize and update the GitLab submodule
+    - name: Init and update submodules
+      run: |
+        git submodule update --init --recursive
 
     - name: Install boost
       uses: MarkusJx/install-boost@v2.4.5
