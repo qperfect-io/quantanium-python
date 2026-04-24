@@ -21,11 +21,15 @@ jobs:
     runs-on: ${{ inputs.matrix_os }}
 
     steps:
+    - name: Configure Git credentials for GitHub and GitLab
+      run: |
+        git config --global credential.helper ""
+        git config --global url."https://oauth2:${{ secrets.QUANTANIUM_READ_PAT }}@gitlab.qperfect.io/".insteadOf "https://gitlab.qperfect.io/"
+
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-        fetch-depth: 0
-        token: ${{ secrets.QUANTANIUM_READ_PAT }}
+
         
     - name: Check Architecture
       run: |
@@ -103,7 +107,7 @@ jobs:
         git submodule status
 
     - name: Retrograde cmake
-      run: python -m pip install ninja cmake~=3.24.3 auditwheel
+      run: python -m pip install --break-system-packages ninja cmake~=3.24.3 auditwheel
  
 
     - uses: pypa/cibuildwheel@v2.22
