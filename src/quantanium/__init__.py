@@ -15,5 +15,5 @@
 # limitations under the License.
 #
 from .Quantanium import Quantanium
-__version__ = "1.11.0"
+__version__ = "1.15.25"
 __all__ = ["Quantanium"]
